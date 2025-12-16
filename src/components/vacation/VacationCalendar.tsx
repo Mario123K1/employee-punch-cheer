@@ -1,0 +1,192 @@
+import { useState } from 'react';
+import { Calendar } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Employee, VacationDay } from '@/types/employee';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Palmtree, Plus, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface VacationCalendarProps {
+  employees: Employee[];
+  vacationDays: VacationDay[];
+  onAddVacation: (employeeId: string, date: Date, type: VacationDay['type']) => void;
+  onRemoveVacation: (vacationId: string) => void;
+}
+
+export function VacationCalendar({
+  employees,
+  vacationDays,
+  onAddVacation,
+  onRemoveVacation,
+}: VacationCalendarProps) {
+  const [selectedEmployee, setSelectedEmployee] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [vacationType, setVacationType] = useState<VacationDay['type']>('vacation');
+
+  const employeeVacations = selectedEmployee
+    ? vacationDays.filter(v => v.employeeId === selectedEmployee)
+    : vacationDays;
+
+  const vacationDates = employeeVacations.map(v => new Date(v.date));
+
+  const handleAddVacation = () => {
+    if (selectedEmployee && selectedDate) {
+      onAddVacation(selectedEmployee, selectedDate, vacationType);
+      setSelectedDate(undefined);
+    }
+  };
+
+  const getVacationTypeColor = (type: VacationDay['type']) => {
+    switch (type) {
+      case 'vacation': return 'bg-vacation text-vacation-foreground';
+      case 'sick': return 'bg-destructive text-destructive-foreground';
+      case 'personal': return 'bg-warning text-warning-foreground';
+    }
+  };
+
+  const getVacationTypeLabel = (type: VacationDay['type']) => {
+    switch (type) {
+      case 'vacation': return 'Vacation';
+      case 'sick': return 'Sick Leave';
+      case 'personal': return 'Personal Day';
+    }
+  };
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      {/* Calendar Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palmtree className="w-5 h-5 text-vacation" />
+            Vacation Calendar
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Employee Selector */}
+          <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select employee" />
+            </SelectTrigger>
+            <SelectContent>
+              {employees.map((emp) => (
+                <SelectItem key={emp.id} value={emp.id}>
+                  {emp.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Calendar */}
+          <div className="flex justify-center">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              modifiers={{
+                vacation: vacationDates,
+              }}
+              modifiersStyles={{
+                vacation: {
+                  backgroundColor: 'hsl(var(--vacation))',
+                  color: 'white',
+                  borderRadius: '50%',
+                },
+              }}
+              className="rounded-lg border"
+            />
+          </div>
+
+          {/* Add Vacation Form */}
+          {selectedEmployee && selectedDate && (
+            <div className="p-4 rounded-lg bg-muted space-y-3 animate-fade-in">
+              <p className="text-sm font-medium">
+                Add time off for {selectedDate.toLocaleDateString()}
+              </p>
+              <Select value={vacationType} onValueChange={(v) => setVacationType(v as VacationDay['type'])}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="vacation">🏖️ Vacation</SelectItem>
+                  <SelectItem value="sick">🤒 Sick Leave</SelectItem>
+                  <SelectItem value="personal">📋 Personal Day</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={handleAddVacation} className="w-full gap-2">
+                <Plus className="w-4 h-4" />
+                Add Time Off
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Vacation List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Scheduled Time Off</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {employeeVacations.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Palmtree className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>No scheduled time off</p>
+              <p className="text-sm">Select an employee and date to add</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {employeeVacations.map((vacation) => {
+                const employee = employees.find(e => e.id === vacation.employeeId);
+                return (
+                  <div
+                    key={vacation.id}
+                    className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold",
+                        "bg-secondary text-secondary-foreground"
+                      )}>
+                        {employee?.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{employee?.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(vacation.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "status-badge",
+                        getVacationTypeColor(vacation.type)
+                      )}>
+                        {getVacationTypeLabel(vacation.type)}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onRemoveVacation(vacation.id)}
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
