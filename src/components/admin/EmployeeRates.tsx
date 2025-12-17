@@ -3,10 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Save, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Save, User, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
 
 interface Employee {
   id: string;
@@ -15,11 +17,20 @@ interface Employee {
   hourlyRate: number;
 }
 
-interface EmployeeRatesProps {
-  employees: Employee[];
+interface TimeEntry {
+  id: string;
+  employeeId: string;
+  date: string;
+  clockIn: string | null;
+  clockOut: string | null;
 }
 
-export const EmployeeRates = ({ employees }: EmployeeRatesProps) => {
+interface EmployeeRatesProps {
+  employees: Employee[];
+  timeEntries?: TimeEntry[];
+}
+
+export const EmployeeRates = ({ employees, timeEntries = [] }: EmployeeRatesProps) => {
   const [rates, setRates] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     employees.forEach(emp => {
@@ -29,6 +40,15 @@ export const EmployeeRates = ({ employees }: EmployeeRatesProps) => {
   });
   const [saving, setSaving] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  const today = format(new Date(), 'yyyy-MM-dd');
+  
+  const isAtWork = (employeeId: string) => {
+    const todayEntry = timeEntries.find(
+      t => t.employeeId === employeeId && t.date === today && t.clockIn && !t.clockOut
+    );
+    return !!todayEntry;
+  };
 
   const handleRateChange = (employeeId: string, value: string) => {
     const numValue = parseFloat(value) || 0;
@@ -70,7 +90,15 @@ export const EmployeeRates = ({ employees }: EmployeeRatesProps) => {
               className="flex items-center gap-4 p-4 border rounded-lg bg-card"
             >
               <div className="flex-1">
-                <p className="font-medium">{employee.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium">{employee.name}</p>
+                  {isAtWork(employee.id) && (
+                    <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-white gap-1">
+                      <Clock className="w-3 h-3" />
+                      V práci
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground">{employee.role}</p>
               </div>
               <div className="flex items-center gap-2">
