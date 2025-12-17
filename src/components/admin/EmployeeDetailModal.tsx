@@ -1,7 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { sk } from 'date-fns/locale';
-import { Clock, LogIn, LogOut } from 'lucide-react';
+import { Clock, LogIn, LogOut, Star } from 'lucide-react';
+import { useHolidays, isHoliday } from '@/hooks/useHolidays';
 
 interface TimeEntry {
   id: string;
@@ -24,6 +25,8 @@ export const EmployeeDetailModal = ({
   employeeName,
   timeEntries,
 }: EmployeeDetailModalProps) => {
+  const { data: holidays = [] } = useHolidays();
+
   const calculateHours = (clockIn: string, clockOut: string): number => {
     const [inH, inM] = clockIn.split(':').map(Number);
     const [outH, outM] = clockOut.split(':').map(Number);
@@ -63,13 +66,24 @@ export const EmployeeDetailModal = ({
                 const hours = entry.clockIn && entry.clockOut 
                   ? Math.round(calculateHours(entry.clockIn, entry.clockOut) * 100) / 100
                   : 0;
+                const holiday = isHoliday(entry.date, holidays);
                 return (
                   <div
                     key={entry.id}
-                    className="flex items-center justify-between p-3 border rounded-lg bg-muted/30"
+                    className={`flex items-center justify-between p-3 border rounded-lg ${
+                      holiday ? 'bg-amber-500/10 border-amber-500/30' : 'bg-muted/30'
+                    }`}
                   >
-                    <div className="font-medium">
-                      {format(new Date(entry.date), 'd.M.yyyy (EEEE)', { locale: sk })}
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">
+                        {format(new Date(entry.date), 'd.M.yyyy (EEEE)', { locale: sk })}
+                      </span>
+                      {holiday && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-600">
+                          <Star className="w-3 h-3" />
+                          {holiday.name}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1 text-green-600">
@@ -82,6 +96,9 @@ export const EmployeeDetailModal = ({
                       </div>
                       <div className="font-semibold min-w-[60px] text-right">
                         {hours}h
+                        {holiday && hours > 0 && (
+                          <span className="text-amber-600 text-xs ml-1">(2x)</span>
+                        )}
                       </div>
                     </div>
                   </div>
