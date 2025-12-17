@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { BarChart3, Clock, Calendar, DollarSign, Download, FileSpreadsheet } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { sk } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -76,6 +77,15 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
 
   const totalWages = reports.reduce((sum, r) => sum + r.calculatedWage, 0);
   const totalHours = reports.reduce((sum, r) => sum + r.totalHours, 0);
+
+  const today = format(new Date(), 'yyyy-MM-dd');
+  
+  const isAtWork = (employeeId: string) => {
+    const todayEntry = timeEntries.find(
+      t => t.employeeId === employeeId && t.date === today && t.clockIn && !t.clockOut
+    );
+    return !!todayEntry;
+  };
 
   const handleExport = () => {
     const exportData = reports.map(report => ({
@@ -307,6 +317,12 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                           {report.employeeName.split(' ').map(n => n[0]).join('')}
                         </div>
                         <span className="font-medium underline-offset-2 hover:underline">{report.employeeName}</span>
+                        {isAtWork(report.employeeId) && (
+                          <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-white gap-1 ml-1">
+                            <Clock className="w-3 h-3" />
+                            V práci
+                          </Badge>
+                        )}
                       </button>
                     </td>
                     <td className="text-right py-3 px-4">{report.totalDays}</td>
