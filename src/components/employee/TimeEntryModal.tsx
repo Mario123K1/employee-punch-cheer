@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Clock, LogIn, LogOut, AlertTriangle } from 'lucide-react';
+import { Clock, LogIn, LogOut, AlertTriangle, Coffee } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { sk } from 'date-fns/locale';
@@ -31,6 +31,7 @@ interface TimeEntryModalProps {
   onClockIn: (employeeId: string, time: string) => void;
   onClockOut: (employeeId: string, time: string) => void;
   onCloseUnclosed: (entryId: string, time: string) => void;
+  onToggleBreak?: (entryId: string, breakTaken: boolean) => void;
 }
 
 export function TimeEntryModal({
@@ -42,6 +43,7 @@ export function TimeEntryModal({
   onClockIn,
   onClockOut,
   onCloseUnclosed,
+  onToggleBreak,
 }: TimeEntryModalProps) {
   const [clockInTime, setClockInTime] = useState('');
   const [clockOutTime, setClockOutTime] = useState('');
@@ -81,12 +83,31 @@ export function TimeEntryModal({
     }
   };
 
+  const handleToggleBreak = () => {
+    if (todayEntry && onToggleBreak) {
+      onToggleBreak(todayEntry.id, !todayEntry.breakTaken);
+    }
+  };
+
   const formatUnclosedDate = (dateStr: string) => {
     try {
       return format(new Date(dateStr), 'd. MMMM yyyy (EEEE)', { locale: sk });
     } catch {
       return dateStr;
     }
+  };
+
+  // Calculate displayed hours
+  const calculateHours = () => {
+    if (!todayEntry?.clockIn || !todayEntry?.clockOut) return null;
+    const [inH, inM] = todayEntry.clockIn.split(':').map(Number);
+    const [outH, outM] = todayEntry.clockOut.split(':').map(Number);
+    const totalMinutes = (outH * 60 + outM) - (inH * 60 + inM);
+    let hours = Math.max(0, totalMinutes / 60);
+    if (todayEntry.breakTaken) {
+      hours = Math.max(0, hours - 0.5);
+    }
+    return Math.round(hours * 100) / 100;
   };
 
   if (!employee) return null;
@@ -219,14 +240,44 @@ export function TimeEntryModal({
             </div>
           )}
 
-          {/* Completed Status */}
+          {/* Completed Status with Break Toggle */}
           {hasCompleted && (
-            <div className="p-4 rounded-lg bg-muted text-center">
-              <p className="text-sm text-muted-foreground">
-                Dochádzka na dnešok dokončená
-              </p>
-              <p className="font-semibold mt-1">
-                {todayEntry?.clockIn} → {todayEntry?.clockOut}
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-muted text-center">
+                <p className="text-sm text-muted-foreground">
+                  Dochádzka na dnešok dokončená
+                </p>
+                <p className="font-semibold mt-1">
+                  {todayEntry?.clockIn} → {todayEntry?.clockOut}
+                </p>
+                {calculateHours() !== null && (
+                  <p className="text-lg font-bold mt-2 text-primary">
+                    {calculateHours()}h {todayEntry?.breakTaken && <span className="text-sm font-normal text-muted-foreground">(po odrátaní prestávky)</span>}
+                  </p>
+                )}
+              </div>
+              
+              {/* Break Toggle Button */}
+              {onToggleBreak && (
+                <Button
+                  variant={todayEntry?.breakTaken ? "default" : "outline"}
+                  className={cn(
+                    "w-full gap-2",
+                    todayEntry?.breakTaken 
+                      ? "bg-amber-500 hover:bg-amber-600 text-white" 
+                      : "border-amber-500 text-amber-600 hover:bg-amber-500/10"
+                  )}
+                  onClick={handleToggleBreak}
+                >
+                  <Coffee className="w-4 h-4" />
+                  {todayEntry?.breakTaken 
+                    ? "Prestávka označená (−30 min)" 
+                    : "Označiť prestávku (−30 min)"
+                  }
+                </Button>
+              )}
+              <p className="text-xs text-muted-foreground text-center">
+                Prestávka 30 minút sa automaticky odpočíta z odpracovaných hodín
               </p>
             </div>
           )}

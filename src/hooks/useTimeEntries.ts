@@ -7,6 +7,7 @@ export interface TimeEntry {
   date: string;
   clock_in: string | null;
   clock_out: string | null;
+  break_taken: boolean;
   created_at: string;
 }
 
@@ -82,4 +83,25 @@ export function getUnclosedPreviousEntry(
       e.clock_in &&
       !e.clock_out
   );
+}
+
+export function useToggleBreak() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ entryId, breakTaken }: { entryId: string; breakTaken: boolean }) => {
+      const { data, error } = await supabase
+        .from('time_entries')
+        .update({ break_taken: breakTaken })
+        .eq('id', entryId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['time_entries'] });
+    },
+  });
 }

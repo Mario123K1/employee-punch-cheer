@@ -71,6 +71,7 @@ const AdminPage = () => {
     date: t.date,
     clockIn: t.clock_in,
     clockOut: t.clock_out,
+    breakTaken: t.break_taken,
   }));
 
   const transformedVacations = vacationDays.map(v => ({

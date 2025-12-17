@@ -3,7 +3,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { EmployeeCard } from '@/components/employee/EmployeeCard';
 import { TimeEntryModal } from '@/components/employee/TimeEntryModal';
 import { useEmployees, Employee } from '@/hooks/useEmployees';
-import { useTimeEntries, useClockIn, useClockOut, TimeEntry, getUnclosedPreviousEntry } from '@/hooks/useTimeEntries';
+import { useTimeEntries, useClockIn, useClockOut, TimeEntry, getUnclosedPreviousEntry, useToggleBreak } from '@/hooks/useTimeEntries';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { Clock, Search, WifiOff, CloudOff } from 'lucide-react';
@@ -19,6 +19,7 @@ const Index = () => {
   const { data: timeEntries = [], isLoading: loadingEntries } = useTimeEntries();
   const clockIn = useClockIn();
   const clockOut = useClockOut();
+  const toggleBreak = useToggleBreak();
   
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -72,6 +73,15 @@ const Index = () => {
       toast.success('Predchádzajúci záznam bol uzavretý');
     } catch (error) {
       toast.error('Chyba pri uzatváraní záznamu');
+    }
+  };
+
+  const handleToggleBreak = async (entryId: string, breakTaken: boolean) => {
+    try {
+      await toggleBreak.mutateAsync({ entryId, breakTaken });
+      toast.success(breakTaken ? 'Prestávka označená' : 'Prestávka zrušená');
+    } catch (error) {
+      toast.error('Chyba pri označovaní prestávky');
     }
   };
 
@@ -172,6 +182,7 @@ const Index = () => {
                       date: todayEntry.date,
                       clockIn: todayEntry.clock_in,
                       clockOut: todayEntry.clock_out,
+                      breakTaken: todayEntry.break_taken,
                     } : undefined}
                     hasUnclosedEntry={!!unclosedEntry}
                     onClick={() => {
@@ -211,12 +222,14 @@ const Index = () => {
               date: entry.date,
               clockIn: entry.clock_in,
               clockOut: entry.clock_out,
+              breakTaken: entry.break_taken,
             } : undefined;
           })()}
           unclosedEntry={getUnclosedEntry(selectedEmployee.id)}
           onClockIn={handleClockIn}
           onClockOut={handleClockOut}
           onCloseUnclosed={handleCloseUnclosed}
+          onToggleBreak={handleToggleBreak}
         />
       )}
     </AppLayout>

@@ -37,11 +37,15 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
   const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; name: string } | null>(null);
   const { data: holidays = [] } = useHolidays();
 
-  const calculateHours = (clockIn: string, clockOut: string): number => {
+  const calculateHours = (clockIn: string, clockOut: string, breakTaken: boolean = false): number => {
     const [inH, inM] = clockIn.split(':').map(Number);
     const [outH, outM] = clockOut.split(':').map(Number);
     const totalMinutes = (outH * 60 + outM) - (inH * 60 + inM);
-    return Math.max(0, totalMinutes / 60);
+    let hours = Math.max(0, totalMinutes / 60);
+    if (breakTaken) {
+      hours = Math.max(0, hours - 0.5);
+    }
+    return hours;
   };
 
   const reports = useMemo(() => {
@@ -59,7 +63,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
 
       employeeEntries.forEach(entry => {
         if (entry.clockIn && entry.clockOut) {
-          const hours = calculateHours(entry.clockIn, entry.clockOut);
+          const hours = calculateHours(entry.clockIn, entry.clockOut, entry.breakTaken);
           if (isHoliday(entry.date, holidays)) {
             holidayHours += hours;
           } else {
@@ -166,7 +170,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
 
     const exportData = employeeEntries.map(entry => {
       const hours = entry.clockIn && entry.clockOut 
-        ? Math.round(calculateHours(entry.clockIn, entry.clockOut) * 100) / 100 
+        ? Math.round(calculateHours(entry.clockIn, entry.clockOut, entry.breakTaken) * 100) / 100 
         : 0;
       const holiday = isHoliday(entry.date, holidays);
       const multiplier = holiday ? 2 : 1;
@@ -175,6 +179,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
         'Sviatok': holiday ? holiday.name : '',
         'Príchod': entry.clockIn || '-',
         'Odchod': entry.clockOut || '-',
+        'Prestávka': entry.breakTaken ? 'Áno (-30min)' : 'Nie',
         'Hodiny': hours,
         'Mzda (€)': Math.round(hours * hourlyRate * multiplier * 100) / 100,
       };
@@ -189,6 +194,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Sviatok': '',
       'Príchod': '',
       'Odchod': '',
+      'Prestávka': '',
       'Hodiny': 0,
       'Mzda (€)': 0,
     });
@@ -197,6 +203,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Sviatok': '',
       'Príchod': '',
       'Odchod': '',
+      'Prestávka': '',
       'Hodiny': Math.round(totalHrs * 100) / 100,
       'Mzda (€)': Math.round(totalWage * 100) / 100,
     });
@@ -209,6 +216,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       { wch: 25 },
       { wch: 10 },
       { wch: 10 },
+      { wch: 15 },
       { wch: 10 },
       { wch: 12 },
     ];

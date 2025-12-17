@@ -10,10 +10,10 @@ export const mockEmployees: Employee[] = [
 ];
 
 export const mockTimeEntries: TimeEntry[] = [
-  { id: '1', employeeId: '1', date: '2024-01-15', clockIn: '09:00', clockOut: '17:30' },
-  { id: '2', employeeId: '1', date: '2024-01-16', clockIn: '08:45', clockOut: '17:00' },
-  { id: '3', employeeId: '2', date: '2024-01-15', clockIn: '09:30', clockOut: '18:00' },
-  { id: '4', employeeId: '3', date: '2024-01-15', clockIn: '08:00', clockOut: '16:30' },
+  { id: '1', employeeId: '1', date: '2024-01-15', clockIn: '09:00', clockOut: '17:30', breakTaken: true },
+  { id: '2', employeeId: '1', date: '2024-01-16', clockIn: '08:45', clockOut: '17:00', breakTaken: true },
+  { id: '3', employeeId: '2', date: '2024-01-15', clockIn: '09:30', clockOut: '18:00', breakTaken: false },
+  { id: '4', employeeId: '3', date: '2024-01-15', clockIn: '08:00', clockOut: '16:30', breakTaken: true },
 ];
 
 export const mockVacationDays: VacationDay[] = [
