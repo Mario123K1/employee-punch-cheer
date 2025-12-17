@@ -10,8 +10,10 @@ import {
 } from '@/components/ui/select';
 import { Employee, VacationDay } from '@/types/employee';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Palmtree, Plus, Trash2 } from 'lucide-react';
+import { Palmtree, Plus, Trash2, CalendarRange } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DateRange } from 'react-day-picker';
+import { eachDayOfInterval, format } from 'date-fns';
 
 interface VacationCalendarProps {
   employees: Employee[];
@@ -27,7 +29,7 @@ export function VacationCalendar({
   onRemoveVacation,
 }: VacationCalendarProps) {
   const [selectedEmployee, setSelectedEmployee] = useState<string>('');
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [vacationType, setVacationType] = useState<VacationDay['type']>('vacation');
 
   const employeeVacations = selectedEmployee
@@ -36,11 +38,25 @@ export function VacationCalendar({
 
   const vacationDates = employeeVacations.map(v => new Date(v.date));
 
-  const handleAddVacation = () => {
-    if (selectedEmployee && selectedDate) {
-      onAddVacation(selectedEmployee, selectedDate, vacationType);
-      setSelectedDate(undefined);
+  const handleAddVacation = async () => {
+    if (selectedEmployee && dateRange?.from) {
+      const startDate = dateRange.from;
+      const endDate = dateRange.to || dateRange.from;
+      
+      const days = eachDayOfInterval({ start: startDate, end: endDate });
+      
+      for (const day of days) {
+        await onAddVacation(selectedEmployee, day, vacationType);
+      }
+      
+      setDateRange(undefined);
     }
+  };
+
+  const getDaysCount = () => {
+    if (!dateRange?.from) return 0;
+    const endDate = dateRange.to || dateRange.from;
+    return eachDayOfInterval({ start: dateRange.from, end: endDate }).length;
   };
 
   const getVacationTypeColor = (type: VacationDay['type']) => {
@@ -87,9 +103,9 @@ export function VacationCalendar({
           {/* Calendar */}
           <div className="flex justify-center">
             <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
+              mode="range"
+              selected={dateRange}
+              onSelect={setDateRange}
               modifiers={{
                 vacation: vacationDates,
               }}
@@ -105,11 +121,18 @@ export function VacationCalendar({
           </div>
 
           {/* Add Vacation Form */}
-          {selectedEmployee && selectedDate && (
+          {selectedEmployee && dateRange?.from && (
             <div className="p-4 rounded-lg bg-muted space-y-3 animate-fade-in">
-              <p className="text-sm font-medium">
-                Pridať voľno na {selectedDate.toLocaleDateString('sk-SK')}
-              </p>
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <CalendarRange className="w-4 h-4" />
+                {dateRange.to && dateRange.to.getTime() !== dateRange.from.getTime() ? (
+                  <span>
+                    {format(dateRange.from, 'd.M.yyyy')} - {format(dateRange.to, 'd.M.yyyy')} ({getDaysCount()} dní)
+                  </span>
+                ) : (
+                  <span>Pridať voľno na {format(dateRange.from, 'd.M.yyyy')}</span>
+                )}
+              </div>
               <Select value={vacationType} onValueChange={(v) => setVacationType(v as VacationDay['type'])}>
                 <SelectTrigger>
                   <SelectValue />
