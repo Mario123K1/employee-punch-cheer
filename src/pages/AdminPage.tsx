@@ -145,7 +145,7 @@ const AdminPage = () => {
             </TabsContent>
 
             <TabsContent value="rates" className="mt-6">
-              <EmployeeRates employees={transformedEmployees} />
+              <EmployeeRates employees={transformedEmployees} timeEntries={transformedTimeEntries} />
             </TabsContent>
             
             <TabsContent value="calculator" className="mt-6">
