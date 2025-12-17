@@ -204,13 +204,33 @@ export function TimeEntryModal({
 
           {/* Clock Out Section */}
           {isClockedIn && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="p-3 rounded-lg bg-clockIn/10 border border-clockIn/20">
                 <p className="text-sm font-medium text-clockIn">
                   <Clock className="w-4 h-4 inline mr-2" />
                   Príchod o {todayEntry?.clockIn}
                 </p>
               </div>
+              
+              {/* Break Toggle Button - available while working */}
+              {onToggleBreak && (
+                <Button
+                  variant={todayEntry?.breakTaken ? "default" : "outline"}
+                  className={cn(
+                    "w-full gap-2",
+                    todayEntry?.breakTaken 
+                      ? "bg-amber-500 hover:bg-amber-600 text-white" 
+                      : "border-amber-500 text-amber-600 hover:bg-amber-500/10"
+                  )}
+                  onClick={handleToggleBreak}
+                >
+                  <Coffee className="w-4 h-4" />
+                  {todayEntry?.breakTaken 
+                    ? "Prestávka označená (−30 min)" 
+                    : "Označiť prestávku (−30 min)"
+                  }
+                </Button>
+              )}
               
               <Label htmlFor="clockOut" className="text-sm font-medium">
                 Čas odchodu
