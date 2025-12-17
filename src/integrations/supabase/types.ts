@@ -14,7 +14,97 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      employees: {
+        Row: {
+          created_at: string
+          hourly_rate: number
+          id: string
+          name: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          hourly_rate?: number
+          id?: string
+          name: string
+          role: string
+        }
+        Update: {
+          created_at?: string
+          hourly_rate?: number
+          id?: string
+          name?: string
+          role?: string
+        }
+        Relationships: []
+      }
+      time_entries: {
+        Row: {
+          clock_in: string | null
+          clock_out: string | null
+          created_at: string
+          date: string
+          employee_id: string
+          id: string
+        }
+        Insert: {
+          clock_in?: string | null
+          clock_out?: string | null
+          created_at?: string
+          date: string
+          employee_id: string
+          id?: string
+        }
+        Update: {
+          clock_in?: string | null
+          clock_out?: string | null
+          created_at?: string
+          date?: string
+          employee_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vacation_days: {
+        Row: {
+          created_at: string
+          date: string
+          employee_id: string
+          id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          employee_id: string
+          id?: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          employee_id?: string
+          id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacation_days_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
