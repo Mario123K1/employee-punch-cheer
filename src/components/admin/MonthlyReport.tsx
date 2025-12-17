@@ -15,6 +15,7 @@ import { sk } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
+import { EmployeeDetailModal } from './EmployeeDetailModal';
 
 interface MonthlyReportProps {
   employees: Employee[];
@@ -31,6 +32,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth().toString());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
+  const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; name: string } | null>(null);
 
   const calculateHours = (clockIn: string, clockOut: string): number => {
     const [inH, inM] = clockIn.split(':').map(Number);
@@ -297,12 +299,15 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                 {reports.map((report) => (
                   <tr key={report.employeeId} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                     <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
+                      <button
+                        className="flex items-center gap-3 hover:text-primary transition-colors text-left"
+                        onClick={() => setSelectedEmployee({ id: report.employeeId, name: report.employeeName })}
+                      >
                         <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold">
                           {report.employeeName.split(' ').map(n => n[0]).join('')}
                         </div>
-                        <span className="font-medium">{report.employeeName}</span>
-                      </div>
+                        <span className="font-medium underline-offset-2 hover:underline">{report.employeeName}</span>
+                      </button>
                     </td>
                     <td className="text-right py-3 px-4">{report.totalDays}</td>
                     <td className="text-right py-3 px-4 font-medium">{report.totalHours}h</td>
@@ -332,6 +337,15 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
           </div>
         </CardContent>
       </Card>
+
+      {selectedEmployee && (
+        <EmployeeDetailModal
+          isOpen={!!selectedEmployee}
+          onClose={() => setSelectedEmployee(null)}
+          employeeName={selectedEmployee.name}
+          timeEntries={timeEntries.filter(e => e.employeeId === selectedEmployee.id)}
+        />
+      )}
     </div>
   );
 }
