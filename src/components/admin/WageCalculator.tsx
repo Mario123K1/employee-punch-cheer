@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Calculator, DollarSign, Clock, Percent } from 'lucide-react';
+import { Calculator, DollarSign, Clock, Percent, UtensilsCrossed } from 'lucide-react';
 
 export function WageCalculator() {
   const [hours, setHours] = useState('');
@@ -11,18 +11,21 @@ export function WageCalculator() {
   const [overtime, setOvertime] = useState('');
   const [overtimeMultiplier, setOvertimeMultiplier] = useState('1.5');
   const [deductions, setDeductions] = useState('');
+  const [mealVouchers, setMealVouchers] = useState('');
 
   const regularPay = parseFloat(hours || '0') * parseFloat(rate || '0');
   const overtimePay = parseFloat(overtime || '0') * parseFloat(rate || '0') * parseFloat(overtimeMultiplier || '1.5');
   const grossPay = regularPay + overtimePay;
   const deductionAmount = parseFloat(deductions || '0');
-  const netPay = grossPay - deductionAmount;
+  const mealVouchersAmount = parseFloat(mealVouchers || '0');
+  const netPay = grossPay - deductionAmount + mealVouchersAmount;
 
   const clearAll = () => {
     setHours('');
     setRate('');
     setOvertime('');
     setDeductions('');
+    setMealVouchers('');
   };
 
   return (
@@ -104,7 +107,7 @@ export function WageCalculator() {
           </div>
 
           {/* Deductions */}
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-2">
             <Label htmlFor="deductions" className="flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-destructive" />
               Zrážky (dane, atď.)
@@ -114,6 +117,23 @@ export function WageCalculator() {
               type="number"
               value={deductions}
               onChange={(e) => setDeductions(e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+
+          {/* Meal Vouchers */}
+          <div className="space-y-2">
+            <Label htmlFor="mealVouchers" className="flex items-center gap-2">
+              <UtensilsCrossed className="w-4 h-4 text-clockIn" />
+              Stravné lístky
+            </Label>
+            <Input
+              id="mealVouchers"
+              type="number"
+              value={mealVouchers}
+              onChange={(e) => setMealVouchers(e.target.value)}
               placeholder="0.00"
               min="0"
               step="0.01"
@@ -138,6 +158,10 @@ export function WageCalculator() {
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Zrážky</span>
             <span className="font-medium text-destructive">-{deductionAmount.toFixed(2)} €</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">Stravné lístky</span>
+            <span className="font-medium text-clockIn">+{mealVouchersAmount.toFixed(2)} €</span>
           </div>
           <div className="flex justify-between items-center border-t pt-3">
             <span className="font-semibold text-lg">Čistá mzda</span>
