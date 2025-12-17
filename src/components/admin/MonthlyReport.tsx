@@ -9,7 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BarChart3, Clock, Calendar, DollarSign, Download } from 'lucide-react';
+import { BarChart3, Clock, Calendar, DollarSign, Download, FileSpreadsheet } from 'lucide-react';
+import { format } from 'date-fns';
+import { sk } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
@@ -112,6 +114,72 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
     
     XLSX.writeFile(workbook, fileName);
     toast.success(`Export "${fileName}" bol stiahnutý`);
+  };
+
+  const handleEmployeeExport = (employeeId: string, employeeName: string) => {
+    const monthNum = parseInt(selectedMonth) + 1;
+    const yearNum = parseInt(selectedYear);
+    const monthPrefix = `${yearNum}-${monthNum.toString().padStart(2, '0')}`;
+
+    const employeeEntries = timeEntries
+      .filter(e => e.employeeId === employeeId && e.date.startsWith(monthPrefix))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    const employee = employees.find(e => e.id === employeeId);
+    const hourlyRate = employee?.hourlyRate || 0;
+
+    const exportData = employeeEntries.map(entry => {
+      const hours = entry.clockIn && entry.clockOut 
+        ? Math.round(calculateHours(entry.clockIn, entry.clockOut) * 100) / 100 
+        : 0;
+      return {
+        'Dátum': format(new Date(entry.date), 'd.M.yyyy (EEEE)', { locale: sk }),
+        'Príchod': entry.clockIn || '-',
+        'Odchod': entry.clockOut || '-',
+        'Hodiny': hours,
+        'Mzda (€)': Math.round(hours * hourlyRate * 100) / 100,
+      };
+    });
+
+    const totalHrs = exportData.reduce((sum, row) => sum + (row['Hodiny'] as number), 0);
+    const totalWage = exportData.reduce((sum, row) => sum + (row['Mzda (€)'] as number), 0);
+
+    // Add empty row and totals
+    exportData.push({
+      'Dátum': '',
+      'Príchod': '',
+      'Odchod': '',
+      'Hodiny': 0,
+      'Mzda (€)': 0,
+    });
+    exportData.push({
+      'Dátum': 'CELKOM',
+      'Príchod': '',
+      'Odchod': '',
+      'Hodiny': Math.round(totalHrs * 100) / 100,
+      'Mzda (€)': Math.round(totalWage * 100) / 100,
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    
+    worksheet['!cols'] = [
+      { wch: 22 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 12 },
+    ];
+
+    const monthName = months[parseInt(selectedMonth)];
+    const sheetName = employeeName.substring(0, 31);
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+    const safeName = employeeName.replace(/[^a-zA-Z0-9áäčďéíĺľňóôŕšťúýžÁÄČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ]/g, '_');
+    const fileName = `${safeName}_${monthName}_${selectedYear}.xlsx`;
+    
+    XLSX.writeFile(workbook, fileName);
+    toast.success(`Export pre ${employeeName} bol stiahnutý`);
   };
 
   return (
@@ -222,6 +290,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Voľno</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Sadzba/hod</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Celková mzda</th>
+                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Export</th>
                 </tr>
               </thead>
               <tbody>
@@ -246,6 +315,16 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                     </td>
                     <td className="text-right py-3 px-4 text-muted-foreground">{report.hourlyRate} €</td>
                     <td className="text-right py-3 px-4 font-bold text-clockIn">{report.calculatedWage.toFixed(2)} €</td>
+                    <td className="text-right py-3 px-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEmployeeExport(report.employeeId, report.employeeName)}
+                        title="Exportovať detailný výkaz"
+                      >
+                        <FileSpreadsheet className="w-4 h-4" />
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
