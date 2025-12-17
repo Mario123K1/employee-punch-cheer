@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, User, Clock, Coffee } from 'lucide-react';
+import { Save, User, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -23,7 +23,6 @@ interface TimeEntry {
   date: string;
   clockIn: string | null;
   clockOut: string | null;
-  breakTaken?: boolean;
 }
 
 interface EmployeeRatesProps {
@@ -40,19 +39,15 @@ export const EmployeeRates = ({ employees, timeEntries = [] }: EmployeeRatesProp
     return initial;
   });
   const [saving, setSaving] = useState<string | null>(null);
-  const [togglingBreak, setTogglingBreak] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const today = format(new Date(), 'yyyy-MM-dd');
   
-  const getTodayEntry = (employeeId: string) => {
-    return timeEntries.find(
+  const isAtWork = (employeeId: string) => {
+    const todayEntry = timeEntries.find(
       t => t.employeeId === employeeId && t.date === today && t.clockIn && !t.clockOut
     );
-  };
-
-  const isAtWork = (employeeId: string) => {
-    return !!getTodayEntry(employeeId);
+    return !!todayEntry;
   };
 
   const handleRateChange = (employeeId: string, value: string) => {
@@ -79,28 +74,6 @@ export const EmployeeRates = ({ employees, timeEntries = [] }: EmployeeRatesProp
     }
   };
 
-  const handleToggleBreak = async (employeeId: string) => {
-    const entry = getTodayEntry(employeeId);
-    if (!entry) return;
-
-    setTogglingBreak(employeeId);
-    try {
-      const { error } = await supabase
-        .from('time_entries')
-        .update({ break_taken: !entry.breakTaken })
-        .eq('id', entry.id);
-
-      if (error) throw error;
-
-      toast.success(entry.breakTaken ? 'Prestávka zrušená' : 'Prestávka označená');
-      queryClient.invalidateQueries({ queryKey: ['time_entries'] });
-    } catch (error) {
-      toast.error('Chyba pri označovaní prestávky');
-    } finally {
-      setTogglingBreak(null);
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -111,64 +84,47 @@ export const EmployeeRates = ({ employees, timeEntries = [] }: EmployeeRatesProp
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {employees.map(employee => {
-            const todayEntry = getTodayEntry(employee.id);
-            const atWork = isAtWork(employee.id);
-            
-            return (
-              <div
-                key={employee.id}
-                className="flex items-center gap-4 p-4 border rounded-lg bg-card"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium">{employee.name}</p>
-                    {atWork && (
-                      <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-white gap-1">
-                        <Clock className="w-3 h-3" />
-                        V práci
-                      </Badge>
-                    )}
-                    {atWork && (
-                      <Button
-                        size="sm"
-                        variant={todayEntry?.breakTaken ? "secondary" : "outline"}
-                        onClick={() => handleToggleBreak(employee.id)}
-                        disabled={togglingBreak === employee.id}
-                        className="gap-1 h-7"
-                      >
-                        <Coffee className="w-3 h-3" />
-                        {todayEntry?.breakTaken ? 'Prestávka ✓' : 'Prestávka'}
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground">{employee.role}</p>
-                </div>
+          {employees.map(employee => (
+            <div
+              key={employee.id}
+              className="flex items-center gap-4 p-4 border rounded-lg bg-card"
+            >
+              <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor={`rate-${employee.id}`} className="sr-only">
-                    Hodinová sadzba
-                  </Label>
-                  <Input
-                    id={`rate-${employee.id}`}
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={rates[employee.id] || 0}
-                    onChange={(e) => handleRateChange(employee.id, e.target.value)}
-                    className="w-24"
-                  />
-                  <span className="text-muted-foreground">€/hod</span>
-                  <Button
-                    size="sm"
-                    onClick={() => handleSave(employee.id)}
-                    disabled={saving === employee.id}
-                  >
-                    <Save className="w-4 h-4" />
-                  </Button>
+                  <p className="font-medium">{employee.name}</p>
+                  {isAtWork(employee.id) && (
+                    <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-white gap-1">
+                      <Clock className="w-3 h-3" />
+                      V práci
+                    </Badge>
+                  )}
                 </div>
+                <p className="text-sm text-muted-foreground">{employee.role}</p>
               </div>
-            );
-          })}
+              <div className="flex items-center gap-2">
+                <Label htmlFor={`rate-${employee.id}`} className="sr-only">
+                  Hodinová sadzba
+                </Label>
+                <Input
+                  id={`rate-${employee.id}`}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={rates[employee.id] || 0}
+                  onChange={(e) => handleRateChange(employee.id, e.target.value)}
+                  className="w-24"
+                />
+                <span className="text-muted-foreground">€/hod</span>
+                <Button
+                  size="sm"
+                  onClick={() => handleSave(employee.id)}
+                  disabled={saving === employee.id}
+                >
+                  <Save className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>

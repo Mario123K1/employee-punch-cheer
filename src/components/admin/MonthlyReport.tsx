@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BarChart3, Clock, Calendar, DollarSign, Download, FileSpreadsheet, Star, Coffee } from 'lucide-react';
+import { BarChart3, Clock, Calendar, DollarSign, Download, FileSpreadsheet, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { sk } from 'date-fns/locale';
@@ -18,8 +18,6 @@ import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 import { EmployeeDetailModal } from './EmployeeDetailModal';
 import { useHolidays, isHoliday } from '@/hooks/useHolidays';
-import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
 
 interface MonthlyReportProps {
   employees: Employee[];
@@ -37,37 +35,13 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth().toString());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
   const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; name: string } | null>(null);
-  const [togglingBreak, setTogglingBreak] = useState<string | null>(null);
   const { data: holidays = [] } = useHolidays();
-  const queryClient = useQueryClient();
   const today = format(new Date(), 'yyyy-MM-dd');
 
-  const getTodayEntry = (employeeId: string) => {
-    return timeEntries.find(
+  const isAtWork = (employeeId: string) => {
+    return timeEntries.some(
       t => t.employeeId === employeeId && t.date === today && t.clockIn && !t.clockOut
     );
-  };
-
-  const handleToggleBreak = async (employeeId: string) => {
-    const entry = getTodayEntry(employeeId);
-    if (!entry) return;
-
-    setTogglingBreak(employeeId);
-    try {
-      const { error } = await supabase
-        .from('time_entries')
-        .update({ break_taken: !entry.breakTaken })
-        .eq('id', entry.id);
-
-      if (error) throw error;
-
-      toast.success(entry.breakTaken ? 'Prestávka zrušená' : 'Prestávka označená');
-      queryClient.invalidateQueries({ queryKey: ['time_entries'] });
-    } catch (error) {
-      toast.error('Chyba pri označovaní prestávky');
-    } finally {
-      setTogglingBreak(null);
-    }
   };
 
   const calculateHours = (clockIn: string, clockOut: string, breakTaken: boolean = false): number => {
@@ -132,10 +106,6 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
 
   const totalWages = reports.reduce((sum, r) => sum + r.calculatedWage, 0);
   const totalHours = reports.reduce((sum, r) => sum + r.totalHours, 0);
-  
-  const isAtWork = (employeeId: string) => {
-    return !!getTodayEntry(employeeId);
-  };
 
   const handleExport = () => {
     const exportData = reports.map(report => ({
@@ -374,7 +344,6 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
               </thead>
               <tbody>
                 {reports.map((report) => {
-                  const todayEntry = getTodayEntry(report.employeeId);
                   const atWork = isAtWork(report.employeeId);
                   
                   return (
@@ -395,18 +364,6 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                             <Clock className="w-3 h-3" />
                             V práci
                           </Badge>
-                        )}
-                        {atWork && (
-                          <Button
-                            size="sm"
-                            variant={todayEntry?.breakTaken ? "secondary" : "outline"}
-                            onClick={() => handleToggleBreak(report.employeeId)}
-                            disabled={togglingBreak === report.employeeId}
-                            className="gap-1 h-7"
-                          >
-                            <Coffee className="w-3 h-3" />
-                            {todayEntry?.breakTaken ? '✓' : ''}
-                          </Button>
                         )}
                       </div>
                     </td>
