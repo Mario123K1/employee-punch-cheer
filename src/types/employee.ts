@@ -12,6 +12,7 @@ export interface TimeEntry {
   date: string;
   clockIn: string | null;
   clockOut: string | null;
+  breakTaken: boolean;
 }
 
 export interface VacationDay {

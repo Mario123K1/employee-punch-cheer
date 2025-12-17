@@ -79,6 +79,7 @@ export type Database = {
       }
       time_entries: {
         Row: {
+          break_taken: boolean
           clock_in: string | null
           clock_out: string | null
           created_at: string
@@ -87,6 +88,7 @@ export type Database = {
           id: string
         }
         Insert: {
+          break_taken?: boolean
           clock_in?: string | null
           clock_out?: string | null
           created_at?: string
@@ -95,6 +97,7 @@ export type Database = {
           id?: string
         }
         Update: {
+          break_taken?: boolean
           clock_in?: string | null
           clock_out?: string | null
           created_at?: string

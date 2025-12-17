@@ -10,6 +10,7 @@ interface TimeEntry {
   date: string;
   clockIn: string | null;
   clockOut: string | null;
+  breakTaken: boolean;
 }
 
 interface EmployeeDetailModalProps {
@@ -27,11 +28,15 @@ export const EmployeeDetailModal = ({
 }: EmployeeDetailModalProps) => {
   const { data: holidays = [] } = useHolidays();
 
-  const calculateHours = (clockIn: string, clockOut: string): number => {
+  const calculateHours = (clockIn: string, clockOut: string, breakTaken: boolean = false): number => {
     const [inH, inM] = clockIn.split(':').map(Number);
     const [outH, outM] = clockOut.split(':').map(Number);
     const totalMinutes = (outH * 60 + outM) - (inH * 60 + inM);
-    return Math.max(0, totalMinutes / 60);
+    let hours = Math.max(0, totalMinutes / 60);
+    if (breakTaken) {
+      hours = Math.max(0, hours - 0.5);
+    }
+    return hours;
   };
 
   const sortedEntries = [...timeEntries].sort((a, b) => 
@@ -40,7 +45,7 @@ export const EmployeeDetailModal = ({
 
   const totalHours = sortedEntries.reduce((sum, entry) => {
     if (entry.clockIn && entry.clockOut) {
-      return sum + calculateHours(entry.clockIn, entry.clockOut);
+      return sum + calculateHours(entry.clockIn, entry.clockOut, entry.breakTaken);
     }
     return sum;
   }, 0);
@@ -64,7 +69,7 @@ export const EmployeeDetailModal = ({
             <div className="space-y-2">
               {sortedEntries.map(entry => {
                 const hours = entry.clockIn && entry.clockOut 
-                  ? Math.round(calculateHours(entry.clockIn, entry.clockOut) * 100) / 100
+                  ? Math.round(calculateHours(entry.clockIn, entry.clockOut, entry.breakTaken) * 100) / 100
                   : 0;
                 const holiday = isHoliday(entry.date, holidays);
                 return (
@@ -74,7 +79,7 @@ export const EmployeeDetailModal = ({
                       holiday ? 'bg-amber-500/10 border-amber-500/30' : 'bg-muted/30'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium">
                         {format(new Date(entry.date), 'd.M.yyyy (EEEE)', { locale: sk })}
                       </span>
@@ -82,6 +87,11 @@ export const EmployeeDetailModal = ({
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-600">
                           <Star className="w-3 h-3" />
                           {holiday.name}
+                        </span>
+                      )}
+                      {entry.breakTaken && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-orange-500/20 text-orange-600">
+                          ☕ -30min
                         </span>
                       )}
                     </div>
