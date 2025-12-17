@@ -4,13 +4,14 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { MonthlyReport } from '@/components/admin/MonthlyReport';
 import { WageCalculator } from '@/components/admin/WageCalculator';
 import { EmployeeRates } from '@/components/admin/EmployeeRates';
+import { VacationManagement } from '@/components/admin/VacationManagement';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useTimeEntries } from '@/hooks/useTimeEntries';
 import { useVacationDays } from '@/hooks/useVacationDays';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { BarChart3, Calculator, LogOut, Users } from 'lucide-react';
+import { BarChart3, Calculator, LogOut, Users, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AdminPage = () => {
@@ -97,10 +98,14 @@ const AdminPage = () => {
           </div>
         ) : (
           <Tabs defaultValue="reports" className="w-full">
-            <TabsList className="grid w-full max-w-lg grid-cols-3">
+            <TabsList className="grid w-full max-w-2xl grid-cols-4">
               <TabsTrigger value="reports" className="gap-2">
                 <BarChart3 className="w-4 h-4" />
                 Reporty
+              </TabsTrigger>
+              <TabsTrigger value="vacations" className="gap-2">
+                <Calendar className="w-4 h-4" />
+                Dovolenky
               </TabsTrigger>
               <TabsTrigger value="rates" className="gap-2">
                 <Users className="w-4 h-4" />
@@ -117,6 +122,13 @@ const AdminPage = () => {
                 employees={transformedEmployees}
                 timeEntries={transformedTimeEntries}
                 vacationDays={transformedVacations}
+              />
+            </TabsContent>
+
+            <TabsContent value="vacations" className="mt-6">
+              <VacationManagement 
+                vacationDays={transformedVacations}
+                employees={transformedEmployees}
               />
             </TabsContent>
 
