@@ -18,8 +18,8 @@ interface MonthlyReportProps {
 }
 
 const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'Január', 'Február', 'Marec', 'Apríl', 'Máj', 'Jún',
+  'Júl', 'August', 'September', 'Október', 'November', 'December'
 ];
 
 export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyReportProps) {
@@ -109,7 +109,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                 <Clock className="w-5 h-5 text-accent" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Hours</p>
+                <p className="text-sm text-muted-foreground">Celkom hodín</p>
                 <p className="text-2xl font-bold">{totalHours.toFixed(1)}</p>
               </div>
             </div>
@@ -122,8 +122,8 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                 <DollarSign className="w-5 h-5 text-clockIn" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Wages</p>
-                <p className="text-2xl font-bold">${totalWages.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">Celkom mzdy</p>
+                <p className="text-2xl font-bold">{totalWages.toFixed(2)} €</p>
               </div>
             </div>
           </CardContent>
@@ -135,7 +135,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                 <BarChart3 className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Employees</p>
+                <p className="text-sm text-muted-foreground">Zamestnanci</p>
                 <p className="text-2xl font-bold">{employees.length}</p>
               </div>
             </div>
@@ -148,7 +148,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                 <Calendar className="w-5 h-5 text-vacation" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Time Off Days</p>
+                <p className="text-sm text-muted-foreground">Dni voľna</p>
                 <p className="text-2xl font-bold">{reports.reduce((sum, r) => sum + r.vacationDays, 0)}</p>
               </div>
             </div>
@@ -159,19 +159,19 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       {/* Employee Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Employee Hours - {months[parseInt(selectedMonth)]} {selectedYear}</CardTitle>
+          <CardTitle>Hodiny zamestnancov - {months[parseInt(selectedMonth)]} {selectedYear}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Employee</th>
-                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Days Worked</th>
-                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Hours</th>
-                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Time Off</th>
-                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Rate/hr</th>
-                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Total Wage</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Zamestnanec</th>
+                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Odprac. dní</th>
+                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Hodiny</th>
+                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Voľno</th>
+                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Sadzba/hod</th>
+                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Celková mzda</th>
                 </tr>
               </thead>
               <tbody>
@@ -190,12 +190,12 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                     <td className="text-right py-3 px-4">
                       {report.vacationDays > 0 && (
                         <span className="status-badge bg-vacation/20 text-vacation">
-                          {report.vacationDays} days
+                          {report.vacationDays} dní
                         </span>
                       )}
                     </td>
-                    <td className="text-right py-3 px-4 text-muted-foreground">${report.hourlyRate}</td>
-                    <td className="text-right py-3 px-4 font-bold text-clockIn">${report.calculatedWage.toFixed(2)}</td>
+                    <td className="text-right py-3 px-4 text-muted-foreground">{report.hourlyRate} €</td>
+                    <td className="text-right py-3 px-4 font-bold text-clockIn">{report.calculatedWage.toFixed(2)} €</td>
                   </tr>
                 ))}
               </tbody>

@@ -30,7 +30,7 @@ export function WageCalculator() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calculator className="w-5 h-5 text-accent" />
-          Wage Calculator
+          Kalkulačka mzdy
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -39,7 +39,7 @@ export function WageCalculator() {
           <div className="space-y-2">
             <Label htmlFor="hours" className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
-              Regular Hours
+              Bežné hodiny
             </Label>
             <Input
               id="hours"
@@ -56,7 +56,7 @@ export function WageCalculator() {
           <div className="space-y-2">
             <Label htmlFor="rate" className="flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-muted-foreground" />
-              Hourly Rate
+              Hodinová sadzba
             </Label>
             <Input
               id="rate"
@@ -73,7 +73,7 @@ export function WageCalculator() {
           <div className="space-y-2">
             <Label htmlFor="overtime" className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-warning" />
-              Overtime Hours
+              Nadčasy
             </Label>
             <Input
               id="overtime"
@@ -90,7 +90,7 @@ export function WageCalculator() {
           <div className="space-y-2">
             <Label htmlFor="multiplier" className="flex items-center gap-2">
               <Percent className="w-4 h-4 text-muted-foreground" />
-              Overtime Multiplier
+              Násobok nadčasov
             </Label>
             <Input
               id="multiplier"
@@ -107,7 +107,7 @@ export function WageCalculator() {
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="deductions" className="flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-destructive" />
-              Deductions (taxes, etc.)
+              Zrážky (dane, atď.)
             </Label>
             <Input
               id="deductions"
@@ -124,29 +124,29 @@ export function WageCalculator() {
         {/* Results */}
         <div className="p-4 rounded-xl bg-muted space-y-3">
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Regular Pay</span>
-            <span className="font-medium">${regularPay.toFixed(2)}</span>
+            <span className="text-muted-foreground">Bežná mzda</span>
+            <span className="font-medium">{regularPay.toFixed(2)} €</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Overtime Pay</span>
-            <span className="font-medium text-warning">${overtimePay.toFixed(2)}</span>
+            <span className="text-muted-foreground">Mzda za nadčasy</span>
+            <span className="font-medium text-warning">{overtimePay.toFixed(2)} €</span>
           </div>
           <div className="flex justify-between items-center border-t pt-2">
-            <span className="text-muted-foreground">Gross Pay</span>
-            <span className="font-semibold">${grossPay.toFixed(2)}</span>
+            <span className="text-muted-foreground">Hrubá mzda</span>
+            <span className="font-semibold">{grossPay.toFixed(2)} €</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Deductions</span>
-            <span className="font-medium text-destructive">-${deductionAmount.toFixed(2)}</span>
+            <span className="text-muted-foreground">Zrážky</span>
+            <span className="font-medium text-destructive">-{deductionAmount.toFixed(2)} €</span>
           </div>
           <div className="flex justify-between items-center border-t pt-3">
-            <span className="font-semibold text-lg">Net Pay</span>
-            <span className="font-bold text-2xl text-clockIn">${netPay.toFixed(2)}</span>
+            <span className="font-semibold text-lg">Čistá mzda</span>
+            <span className="font-bold text-2xl text-clockIn">{netPay.toFixed(2)} €</span>
           </div>
         </div>
 
         <Button variant="outline" onClick={clearAll} className="w-full">
-          Clear All
+          Vymazať všetko
         </Button>
       </CardContent>
     </Card>

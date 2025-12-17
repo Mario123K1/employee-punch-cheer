@@ -46,16 +46,16 @@ export function EmployeeCard({ employee, todayEntry, onClick }: EmployeeCardProp
             <>
               <span className="status-badge bg-clockIn/20 text-clockIn">
                 <span className="w-1.5 h-1.5 rounded-full bg-clockIn animate-pulse-soft" />
-                Working
+                Pracuje
               </span>
               <span className="text-xs text-muted-foreground">
-                Since {todayEntry.clockIn}
+                Od {todayEntry.clockIn}
               </span>
             </>
           ) : hasCompleted ? (
             <>
               <span className="status-badge bg-muted text-muted-foreground">
-                Completed
+                Dokončené
               </span>
               <span className="text-xs text-muted-foreground">
                 {todayEntry.clockIn} - {todayEntry.clockOut}
@@ -63,7 +63,7 @@ export function EmployeeCard({ employee, todayEntry, onClick }: EmployeeCardProp
             </>
           ) : (
             <span className="status-badge bg-secondary text-secondary-foreground">
-              Not clocked in
+              Neprítomný
             </span>
           )}
         </div>

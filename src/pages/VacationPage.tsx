@@ -17,18 +17,18 @@ const VacationPage = () => {
         date: date.toISOString().split('T')[0],
         type,
       });
-      toast.success('Time off scheduled');
+      toast.success('Voľno naplánované');
     } catch (error) {
-      toast.error('Failed to schedule time off');
+      toast.error('Chyba pri plánovaní voľna');
     }
   };
 
   const handleRemoveVacation = async (vacationId: string) => {
     try {
       await removeVacation.mutateAsync(vacationId);
-      toast.success('Time off removed');
+      toast.success('Voľno zrušené');
     } catch (error) {
-      toast.error('Failed to remove time off');
+      toast.error('Chyba pri rušení voľna');
     }
   };
 
@@ -53,15 +53,15 @@ const VacationPage = () => {
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Vacation Management</h1>
+          <h1 className="text-2xl font-bold text-foreground">Správa dovoleniek</h1>
           <p className="text-muted-foreground">
-            Schedule and manage employee time off
+            Plánujte a spravujte voľno zamestnancov
           </p>
         </div>
 
         {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">Načítavam...</p>
           </div>
         ) : (
           <VacationCalendar

@@ -28,9 +28,9 @@ const AdminPage = () => {
   const handleSignOut = async () => {
     const { error } = await signOut();
     if (error) {
-      toast.error('Error signing out');
+      toast.error('Chyba pri odhlasovaní');
     } else {
-      toast.success('Signed out successfully');
+      toast.success('Úspešne odhlásený');
       navigate('/auth');
     }
   };
@@ -39,7 +39,7 @@ const AdminPage = () => {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[400px]">
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">Načítavam...</p>
         </div>
       </AppLayout>
     );
@@ -79,31 +79,31 @@ const AdminPage = () => {
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+            <h1 className="text-2xl font-bold text-foreground">Správa</h1>
             <p className="text-muted-foreground">
-              View reports and calculate wages
+              Zobraziť reporty a vypočítať mzdy
             </p>
           </div>
           <Button variant="outline" onClick={handleSignOut} className="gap-2">
             <LogOut className="w-4 h-4" />
-            Sign Out
+            Odhlásiť
           </Button>
         </div>
 
         {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">Načítavam...</p>
           </div>
         ) : (
           <Tabs defaultValue="reports" className="w-full">
             <TabsList className="grid w-full max-w-md grid-cols-2">
               <TabsTrigger value="reports" className="gap-2">
                 <BarChart3 className="w-4 h-4" />
-                Monthly Reports
+                Mesačné reporty
               </TabsTrigger>
               <TabsTrigger value="calculator" className="gap-2">
                 <Calculator className="w-4 h-4" />
-                Wage Calculator
+                Kalkulačka mzdy
               </TabsTrigger>
             </TabsList>
             

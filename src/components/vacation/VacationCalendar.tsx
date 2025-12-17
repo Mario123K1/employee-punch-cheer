@@ -53,9 +53,9 @@ export function VacationCalendar({
 
   const getVacationTypeLabel = (type: VacationDay['type']) => {
     switch (type) {
-      case 'vacation': return 'Vacation';
-      case 'sick': return 'Sick Leave';
-      case 'personal': return 'Personal Day';
+      case 'vacation': return 'Dovolenka';
+      case 'sick': return 'PN';
+      case 'personal': return 'Osobné voľno';
     }
   };
 
@@ -66,14 +66,14 @@ export function VacationCalendar({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palmtree className="w-5 h-5 text-vacation" />
-            Vacation Calendar
+            Kalendár dovoleniek
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Employee Selector */}
           <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
             <SelectTrigger>
-              <SelectValue placeholder="Select employee" />
+              <SelectValue placeholder="Vyberte zamestnanca" />
             </SelectTrigger>
             <SelectContent>
               {employees.map((emp) => (
@@ -108,21 +108,21 @@ export function VacationCalendar({
           {selectedEmployee && selectedDate && (
             <div className="p-4 rounded-lg bg-muted space-y-3 animate-fade-in">
               <p className="text-sm font-medium">
-                Add time off for {selectedDate.toLocaleDateString()}
+                Pridať voľno na {selectedDate.toLocaleDateString('sk-SK')}
               </p>
               <Select value={vacationType} onValueChange={(v) => setVacationType(v as VacationDay['type'])}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="vacation">🏖️ Vacation</SelectItem>
-                  <SelectItem value="sick">🤒 Sick Leave</SelectItem>
-                  <SelectItem value="personal">📋 Personal Day</SelectItem>
+                  <SelectItem value="vacation">🏖️ Dovolenka</SelectItem>
+                  <SelectItem value="sick">🤒 PN</SelectItem>
+                  <SelectItem value="personal">📋 Osobné voľno</SelectItem>
                 </SelectContent>
               </Select>
               <Button onClick={handleAddVacation} className="w-full gap-2">
                 <Plus className="w-4 h-4" />
-                Add Time Off
+                Pridať voľno
               </Button>
             </div>
           )}
@@ -132,14 +132,14 @@ export function VacationCalendar({
       {/* Vacation List */}
       <Card>
         <CardHeader>
-          <CardTitle>Scheduled Time Off</CardTitle>
+          <CardTitle>Naplánované voľno</CardTitle>
         </CardHeader>
         <CardContent>
           {employeeVacations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Palmtree className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>No scheduled time off</p>
-              <p className="text-sm">Select an employee and date to add</p>
+              <p>Žiadne naplánované voľno</p>
+              <p className="text-sm">Vyberte zamestnanca a dátum</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -160,7 +160,7 @@ export function VacationCalendar({
                       <div>
                         <p className="font-medium text-sm">{employee?.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(vacation.date).toLocaleDateString()}
+                          {new Date(vacation.date).toLocaleDateString('sk-SK')}
                         </p>
                       </div>
                     </div>

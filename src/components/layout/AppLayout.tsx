@@ -8,9 +8,9 @@ interface AppLayoutProps {
 }
 
 const navItems = [
-  { path: '/', label: 'Time Clock', icon: Clock },
-  { path: '/vacation', label: 'Vacation', icon: Calendar },
-  { path: '/admin', label: 'Admin', icon: BarChart3 },
+  { path: '/', label: 'Dochádzka', icon: Clock },
+  { path: '/vacation', label: 'Dovolenka', icon: Calendar },
+  { path: '/admin', label: 'Správa', icon: BarChart3 },
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {
@@ -27,8 +27,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <Clock className="w-5 h-5 text-accent-foreground" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold">TimeTrack Pro</h1>
-                <p className="text-xs text-primary-foreground/70">Employee Management</p>
+                <h1 className="text-lg font-semibold">Dominko s.r.o</h1>
+                <p className="text-xs text-primary-foreground/70">Evidencia dochádzky</p>
               </div>
             </div>
             
