@@ -10,12 +10,15 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useTimeEntries } from '@/hooks/useTimeEntries';
 import { useVacationDays } from '@/hooks/useVacationDays';
 import { useAuth } from '@/hooks/useAuth';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { BarChart3, Calculator, LogOut, Users, Calendar, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AdminPage = () => {
+  useRealtimeSubscription();
+  
   const navigate = useNavigate();
   const { user, isAdmin, loading: authLoading, signOut } = useAuth();
   const { data: employees = [], isLoading: loadingEmployees } = useEmployees();
