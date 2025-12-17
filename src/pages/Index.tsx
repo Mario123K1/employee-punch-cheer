@@ -119,6 +119,7 @@ const Index = () => {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filteredEmployees.map((employee, index) => {
               const todayEntry = getTodayEntry(employee.id);
+              const unclosedEntry = getUnclosedPreviousEntry(timeEntries, employee.id, today);
               return (
                 <div
                   key={employee.id}
@@ -139,6 +140,7 @@ const Index = () => {
                       clockIn: todayEntry.clock_in,
                       clockOut: todayEntry.clock_out,
                     } : undefined}
+                    hasUnclosedEntry={!!unclosedEntry}
                     onClick={() => {
                       setSelectedEmployee(employee);
                       setModalOpen(true);

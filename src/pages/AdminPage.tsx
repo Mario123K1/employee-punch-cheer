@@ -5,13 +5,14 @@ import { MonthlyReport } from '@/components/admin/MonthlyReport';
 import { WageCalculator } from '@/components/admin/WageCalculator';
 import { EmployeeRates } from '@/components/admin/EmployeeRates';
 import { VacationManagement } from '@/components/admin/VacationManagement';
+import { UnclosedEntries } from '@/components/admin/UnclosedEntries';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useTimeEntries } from '@/hooks/useTimeEntries';
 import { useVacationDays } from '@/hooks/useVacationDays';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { BarChart3, Calculator, LogOut, Users, Calendar } from 'lucide-react';
+import { BarChart3, Calculator, LogOut, Users, Calendar, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AdminPage = () => {
@@ -98,22 +99,26 @@ const AdminPage = () => {
           </div>
         ) : (
           <Tabs defaultValue="reports" className="w-full">
-            <TabsList className="grid w-full max-w-2xl grid-cols-4">
+            <TabsList className="grid w-full max-w-3xl grid-cols-5">
               <TabsTrigger value="reports" className="gap-2">
                 <BarChart3 className="w-4 h-4" />
-                Reporty
+                <span className="hidden sm:inline">Reporty</span>
+              </TabsTrigger>
+              <TabsTrigger value="unclosed" className="gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="hidden sm:inline">Neuzavreté</span>
               </TabsTrigger>
               <TabsTrigger value="vacations" className="gap-2">
                 <Calendar className="w-4 h-4" />
-                Dovolenky
+                <span className="hidden sm:inline">Dovolenky</span>
               </TabsTrigger>
               <TabsTrigger value="rates" className="gap-2">
                 <Users className="w-4 h-4" />
-                Sadzby
+                <span className="hidden sm:inline">Sadzby</span>
               </TabsTrigger>
               <TabsTrigger value="calculator" className="gap-2">
                 <Calculator className="w-4 h-4" />
-                Kalkulačka
+                <span className="hidden sm:inline">Kalkulačka</span>
               </TabsTrigger>
             </TabsList>
             
@@ -122,6 +127,13 @@ const AdminPage = () => {
                 employees={transformedEmployees}
                 timeEntries={transformedTimeEntries}
                 vacationDays={transformedVacations}
+              />
+            </TabsContent>
+
+            <TabsContent value="unclosed" className="mt-6">
+              <UnclosedEntries
+                employees={transformedEmployees}
+                timeEntries={timeEntries}
               />
             </TabsContent>
 
