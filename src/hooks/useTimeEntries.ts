@@ -69,3 +69,17 @@ export function useClockOut() {
     },
   });
 }
+
+export function getUnclosedPreviousEntry(
+  timeEntries: TimeEntry[],
+  employeeId: string,
+  today: string
+): TimeEntry | undefined {
+  return timeEntries.find(
+    (e) =>
+      e.employee_id === employeeId &&
+      e.date < today &&
+      e.clock_in &&
+      !e.clock_out
+  );
+}

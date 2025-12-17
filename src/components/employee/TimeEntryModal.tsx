@@ -10,16 +10,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Clock, LogIn, LogOut, X } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Clock, LogIn, LogOut, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { sk } from 'date-fns/locale';
+
+interface UnclosedEntry {
+  id: string;
+  date: string;
+  clockIn: string;
+}
 
 interface TimeEntryModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   employee: Employee | null;
   todayEntry?: TimeEntry;
+  unclosedEntry?: UnclosedEntry;
   onClockIn: (employeeId: string, time: string) => void;
   onClockOut: (employeeId: string, time: string) => void;
+  onCloseUnclosed: (entryId: string, time: string) => void;
 }
 
 export function TimeEntryModal({
@@ -27,11 +38,14 @@ export function TimeEntryModal({
   onOpenChange,
   employee,
   todayEntry,
+  unclosedEntry,
   onClockIn,
   onClockOut,
+  onCloseUnclosed,
 }: TimeEntryModalProps) {
   const [clockInTime, setClockInTime] = useState('');
   const [clockOutTime, setClockOutTime] = useState('');
+  const [unclosedCloseTime, setUnclosedCloseTime] = useState('');
 
   const isClockedIn = todayEntry?.clockIn && !todayEntry?.clockOut;
   const hasCompleted = todayEntry?.clockIn && todayEntry?.clockOut;
@@ -56,6 +70,22 @@ export function TimeEntryModal({
       onClockOut(employee.id, time);
       setClockOutTime('');
       onOpenChange(false);
+    }
+  };
+
+  const handleCloseUnclosed = () => {
+    if (unclosedEntry) {
+      const time = unclosedCloseTime || '23:59';
+      onCloseUnclosed(unclosedEntry.id, time);
+      setUnclosedCloseTime('');
+    }
+  };
+
+  const formatUnclosedDate = (dateStr: string) => {
+    try {
+      return format(new Date(dateStr), 'd. MMMM yyyy (EEEE)', { locale: sk });
+    } catch {
+      return dateStr;
     }
   };
 
@@ -89,6 +119,37 @@ export function TimeEntryModal({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Unclosed Entry Warning */}
+          {unclosedEntry && (
+            <Alert variant="destructive" className="border-orange-500/50 bg-orange-500/10 text-orange-700 dark:text-orange-400">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Neuzavretý záznam</AlertTitle>
+              <AlertDescription className="mt-2 space-y-3">
+                <p>
+                  Zamestnanec má neuzavretý záznam z <strong>{formatUnclosedDate(unclosedEntry.date)}</strong> (príchod: {unclosedEntry.clockIn})
+                </p>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    type="time"
+                    value={unclosedCloseTime}
+                    onChange={(e) => setUnclosedCloseTime(e.target.value)}
+                    placeholder="HH:MM"
+                    className="flex-1 bg-background"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCloseUnclosed}
+                    className="gap-1 border-orange-500 text-orange-700 hover:bg-orange-500/20"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    Uzavrieť (23:59)
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Clock In Section */}
           {!isClockedIn && !hasCompleted && (
             <div className="space-y-3">

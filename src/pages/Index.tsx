@@ -3,7 +3,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { EmployeeCard } from '@/components/employee/EmployeeCard';
 import { TimeEntryModal } from '@/components/employee/TimeEntryModal';
 import { useEmployees, Employee } from '@/hooks/useEmployees';
-import { useTimeEntries, useClockIn, useClockOut, TimeEntry } from '@/hooks/useTimeEntries';
+import { useTimeEntries, useClockIn, useClockOut, TimeEntry, getUnclosedPreviousEntry } from '@/hooks/useTimeEntries';
 import { Clock, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -43,6 +43,24 @@ const Index = () => {
         toast.error('Chyba pri zázname odchodu');
       }
     }
+  };
+
+  const handleCloseUnclosed = async (entryId: string, time: string) => {
+    try {
+      await clockOut.mutateAsync({ entryId, time });
+      toast.success('Predchádzajúci záznam bol uzavretý');
+    } catch (error) {
+      toast.error('Chyba pri uzatváraní záznamu');
+    }
+  };
+
+  const getUnclosedEntry = (employeeId: string) => {
+    const unclosed = getUnclosedPreviousEntry(timeEntries, employeeId, today);
+    return unclosed ? {
+      id: unclosed.id,
+      date: unclosed.date,
+      clockIn: unclosed.clock_in || '',
+    } : undefined;
   };
 
   const filteredEmployees = employees.filter(emp =>
@@ -160,8 +178,10 @@ const Index = () => {
               clockOut: entry.clock_out,
             } : undefined;
           })()}
+          unclosedEntry={getUnclosedEntry(selectedEmployee.id)}
           onClockIn={handleClockIn}
           onClockOut={handleClockOut}
+          onCloseUnclosed={handleCloseUnclosed}
         />
       )}
     </AppLayout>
