@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BarChart3, Clock, Calendar, DollarSign, Download, FileSpreadsheet } from 'lucide-react';
+import { BarChart3, Clock, Calendar, DollarSign, Download, FileSpreadsheet, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { sk } from 'date-fns/locale';
@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 import { EmployeeDetailModal } from './EmployeeDetailModal';
+import { useHolidays, isHoliday } from '@/hooks/useHolidays';
 
 interface MonthlyReportProps {
   employees: Employee[];
@@ -34,6 +35,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth().toString());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
   const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; name: string } | null>(null);
+  const { data: holidays = [] } = useHolidays();
 
   const calculateHours = (clockIn: string, clockOut: string): number => {
     const [inH, inM] = clockIn.split(':').map(Number);
@@ -42,7 +44,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
     return Math.max(0, totalMinutes / 60);
   };
 
-  const reports = useMemo<MonthlyReportType[]>(() => {
+  const reports = useMemo(() => {
     const monthNum = parseInt(selectedMonth) + 1;
     const yearNum = parseInt(selectedYear);
     const monthPrefix = `${yearNum}-${monthNum.toString().padStart(2, '0')}`;
@@ -52,28 +54,44 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
         e => e.employeeId === employee.id && e.date.startsWith(monthPrefix) && e.clockIn && e.clockOut
       );
 
-      const totalHours = employeeEntries.reduce((sum, entry) => {
-        if (entry.clockIn && entry.clockOut) {
-          return sum + calculateHours(entry.clockIn, entry.clockOut);
-        }
-        return sum;
-      }, 0);
+      let regularHours = 0;
+      let holidayHours = 0;
 
+      employeeEntries.forEach(entry => {
+        if (entry.clockIn && entry.clockOut) {
+          const hours = calculateHours(entry.clockIn, entry.clockOut);
+          if (isHoliday(entry.date, holidays)) {
+            holidayHours += hours;
+          } else {
+            regularHours += hours;
+          }
+        }
+      });
+
+      const totalHours = regularHours + holidayHours;
       const employeeVacations = vacationDays.filter(
         v => v.employeeId === employee.id && v.date.startsWith(monthPrefix)
       );
+
+      // Regular pay + 100% bonus for holiday hours
+      const regularWage = regularHours * employee.hourlyRate;
+      const holidayWage = holidayHours * employee.hourlyRate * 2; // 100% príplatok = 2x sadzba
+      const calculatedWage = regularWage + holidayWage;
 
       return {
         employeeId: employee.id,
         employeeName: employee.name,
         totalHours: Math.round(totalHours * 100) / 100,
+        regularHours: Math.round(regularHours * 100) / 100,
+        holidayHours: Math.round(holidayHours * 100) / 100,
         totalDays: employeeEntries.length,
         vacationDays: employeeVacations.length,
         hourlyRate: employee.hourlyRate,
-        calculatedWage: Math.round(totalHours * employee.hourlyRate * 100) / 100,
+        calculatedWage: Math.round(calculatedWage * 100) / 100,
+        holidayBonus: Math.round(holidayHours * employee.hourlyRate * 100) / 100,
       };
     });
-  }, [employees, timeEntries, vacationDays, selectedMonth, selectedYear]);
+  }, [employees, timeEntries, vacationDays, selectedMonth, selectedYear, holidays]);
 
   const totalWages = reports.reduce((sum, r) => sum + r.calculatedWage, 0);
   const totalHours = reports.reduce((sum, r) => sum + r.totalHours, 0);
@@ -92,6 +110,8 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Zamestnanec': report.employeeName,
       'Odpracované dni': report.totalDays,
       'Odpracované hodiny': report.totalHours,
+      'Hodiny cez sviatok': report.holidayHours,
+      'Príplatok za sviatky (€)': report.holidayBonus,
       'Dni voľna': report.vacationDays,
       'Hodinová sadzba (€)': report.hourlyRate,
       'Celková mzda (€)': report.calculatedWage,
@@ -102,6 +122,8 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Zamestnanec': 'CELKOM',
       'Odpracované dni': reports.reduce((sum, r) => sum + r.totalDays, 0),
       'Odpracované hodiny': totalHours,
+      'Hodiny cez sviatok': reports.reduce((sum, r) => sum + r.holidayHours, 0),
+      'Príplatok za sviatky (€)': reports.reduce((sum, r) => sum + r.holidayBonus, 0),
       'Dni voľna': reports.reduce((sum, r) => sum + r.vacationDays, 0),
       'Hodinová sadzba (€)': 0,
       'Celková mzda (€)': totalWages,
@@ -116,6 +138,8 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       { wch: 25 }, // Zamestnanec
       { wch: 15 }, // Odpracované dni
       { wch: 18 }, // Odpracované hodiny
+      { wch: 18 }, // Hodiny cez sviatok
+      { wch: 20 }, // Príplatok za sviatky
       { wch: 12 }, // Dni voľna
       { wch: 18 }, // Hodinová sadzba
       { wch: 16 }, // Celková mzda
@@ -144,12 +168,15 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       const hours = entry.clockIn && entry.clockOut 
         ? Math.round(calculateHours(entry.clockIn, entry.clockOut) * 100) / 100 
         : 0;
+      const holiday = isHoliday(entry.date, holidays);
+      const multiplier = holiday ? 2 : 1;
       return {
         'Dátum': format(new Date(entry.date), 'd.M.yyyy (EEEE)', { locale: sk }),
+        'Sviatok': holiday ? holiday.name : '',
         'Príchod': entry.clockIn || '-',
         'Odchod': entry.clockOut || '-',
         'Hodiny': hours,
-        'Mzda (€)': Math.round(hours * hourlyRate * 100) / 100,
+        'Mzda (€)': Math.round(hours * hourlyRate * multiplier * 100) / 100,
       };
     });
 
@@ -159,6 +186,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
     // Add empty row and totals
     exportData.push({
       'Dátum': '',
+      'Sviatok': '',
       'Príchod': '',
       'Odchod': '',
       'Hodiny': 0,
@@ -166,6 +194,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
     });
     exportData.push({
       'Dátum': 'CELKOM',
+      'Sviatok': '',
       'Príchod': '',
       'Odchod': '',
       'Hodiny': Math.round(totalHrs * 100) / 100,
@@ -177,6 +206,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
     
     worksheet['!cols'] = [
       { wch: 22 },
+      { wch: 25 },
       { wch: 10 },
       { wch: 10 },
       { wch: 10 },
@@ -299,6 +329,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Zamestnanec</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Odprac. dní</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Hodiny</th>
+                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Sviatok</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Voľno</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Sadzba/hod</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Celková mzda</th>
@@ -327,6 +358,14 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                     </td>
                     <td className="text-right py-3 px-4">{report.totalDays}</td>
                     <td className="text-right py-3 px-4 font-medium">{report.totalHours}h</td>
+                    <td className="text-right py-3 px-4">
+                      {report.holidayHours > 0 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-500/20 text-amber-600">
+                          <Star className="w-3 h-3" />
+                          {report.holidayHours}h (+{report.holidayBonus}€)
+                        </span>
+                      )}
+                    </td>
                     <td className="text-right py-3 px-4">
                       {report.vacationDays > 0 && (
                         <span className="status-badge bg-vacation/20 text-vacation">
