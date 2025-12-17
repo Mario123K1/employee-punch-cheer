@@ -1,14 +1,15 @@
 import { Employee, TimeEntry } from '@/types/employee';
-import { User, Clock } from 'lucide-react';
+import { User, Clock, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EmployeeCardProps {
   employee: Employee;
   todayEntry?: TimeEntry;
+  hasUnclosedEntry?: boolean;
   onClick: () => void;
 }
 
-export function EmployeeCard({ employee, todayEntry, onClick }: EmployeeCardProps) {
+export function EmployeeCard({ employee, todayEntry, hasUnclosedEntry, onClick }: EmployeeCardProps) {
   const isClockedIn = todayEntry?.clockIn && !todayEntry?.clockOut;
   const hasCompleted = todayEntry?.clockIn && todayEntry?.clockOut;
 
@@ -20,18 +21,26 @@ export function EmployeeCard({ employee, todayEntry, onClick }: EmployeeCardProp
         "hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
         "bg-card border-border",
         isClockedIn && "ring-2 ring-clockIn border-clockIn/30",
-        hasCompleted && "border-muted"
+        hasCompleted && "border-muted",
+        hasUnclosedEntry && !isClockedIn && "ring-2 ring-orange-500 border-orange-500/30"
       )}
     >
       <div className="flex items-center gap-4">
         {/* Avatar */}
         <div className={cn(
-          "w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold",
+          "w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold relative",
           isClockedIn 
             ? "bg-clockIn/20 text-clockIn" 
-            : "bg-secondary text-secondary-foreground"
+            : hasUnclosedEntry
+              ? "bg-orange-500/20 text-orange-600"
+              : "bg-secondary text-secondary-foreground"
         )}>
           {employee.name.split(' ').map(n => n[0]).join('')}
+          {hasUnclosedEntry && !isClockedIn && (
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-3 h-3 text-white" />
+            </div>
+          )}
         </div>
 
         {/* Info */}
@@ -42,7 +51,12 @@ export function EmployeeCard({ employee, todayEntry, onClick }: EmployeeCardProp
 
         {/* Status */}
         <div className="flex flex-col items-end gap-1">
-          {isClockedIn ? (
+          {hasUnclosedEntry && !isClockedIn ? (
+            <span className="status-badge bg-orange-500/20 text-orange-600">
+              <AlertTriangle className="w-3 h-3" />
+              Neuzavretý
+            </span>
+          ) : isClockedIn ? (
             <>
               <span className="status-badge bg-clockIn/20 text-clockIn">
                 <span className="w-1.5 h-1.5 rounded-full bg-clockIn animate-pulse-soft" />
