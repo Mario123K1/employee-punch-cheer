@@ -76,7 +76,7 @@ export function TimeEntryModal({
             </div>
             <div>
               <span>{employee.name}</span>
-              <p className="text-sm font-normal text-muted-foreground">{employee.department}</p>
+              <p className="text-sm font-normal text-muted-foreground">{employee.role || employee.department}</p>
             </div>
           </DialogTitle>
           <DialogDescription>

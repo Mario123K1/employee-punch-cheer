@@ -2,54 +2,60 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { EmployeeCard } from '@/components/employee/EmployeeCard';
 import { TimeEntryModal } from '@/components/employee/TimeEntryModal';
-import { mockEmployees } from '@/data/mockData';
-import { Employee, TimeEntry } from '@/types/employee';
+import { useEmployees, Employee } from '@/hooks/useEmployees';
+import { useTimeEntries, useClockIn, useClockOut, TimeEntry } from '@/hooks/useTimeEntries';
 import { Clock, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 const Index = () => {
-  const [employees] = useState<Employee[]>(mockEmployees);
-  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
+  const { data: employees = [], isLoading: loadingEmployees } = useEmployees();
+  const { data: timeEntries = [], isLoading: loadingEntries } = useTimeEntries();
+  const clockIn = useClockIn();
+  const clockOut = useClockOut();
+  
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const today = new Date().toISOString().split('T')[0];
 
-  const getTodayEntry = (employeeId: string) => {
-    return timeEntries.find(e => e.employeeId === employeeId && e.date === today);
+  const getTodayEntry = (employeeId: string): TimeEntry | undefined => {
+    return timeEntries.find(e => e.employee_id === employeeId && e.date === today);
   };
 
-  const handleClockIn = (employeeId: string, time: string) => {
-    const newEntry: TimeEntry = {
-      id: Date.now().toString(),
-      employeeId,
-      date: today,
-      clockIn: time,
-      clockOut: null,
-    };
-    setTimeEntries([...timeEntries, newEntry]);
+  const handleClockIn = async (employeeId: string, time: string) => {
+    try {
+      await clockIn.mutateAsync({ employeeId, date: today, time });
+      toast.success('Clocked in successfully');
+    } catch (error) {
+      toast.error('Failed to clock in');
+    }
   };
 
-  const handleClockOut = (employeeId: string, time: string) => {
-    setTimeEntries(entries =>
-      entries.map(entry =>
-        entry.employeeId === employeeId && entry.date === today
-          ? { ...entry, clockOut: time }
-          : entry
-      )
-    );
+  const handleClockOut = async (employeeId: string, time: string) => {
+    const entry = getTodayEntry(employeeId);
+    if (entry) {
+      try {
+        await clockOut.mutateAsync({ entryId: entry.id, time });
+        toast.success('Clocked out successfully');
+      } catch (error) {
+        toast.error('Failed to clock out');
+      }
+    }
   };
 
   const filteredEmployees = employees.filter(emp =>
     emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.department?.toLowerCase().includes(searchQuery.toLowerCase())
+    emp.role?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const clockedInCount = employees.filter(emp => {
     const entry = getTodayEntry(emp.id);
-    return entry?.clockIn && !entry?.clockOut;
+    return entry?.clock_in && !entry?.clock_out;
   }).length;
+
+  const isLoading = loadingEmployees || loadingEntries;
 
   return (
     <AppLayout>
@@ -87,26 +93,46 @@ const Index = () => {
         </div>
 
         {/* Employee Grid */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredEmployees.map((employee, index) => (
-            <div
-              key={employee.id}
-              className="animate-slide-up"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <EmployeeCard
-                employee={employee}
-                todayEntry={getTodayEntry(employee.id)}
-                onClick={() => {
-                  setSelectedEmployee(employee);
-                  setModalOpen(true);
-                }}
-              />
-            </div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading employees...</p>
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredEmployees.map((employee, index) => {
+              const todayEntry = getTodayEntry(employee.id);
+              return (
+                <div
+                  key={employee.id}
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <EmployeeCard
+                    employee={{
+                      id: employee.id,
+                      name: employee.name,
+                      role: employee.role,
+                      hourlyRate: employee.hourly_rate,
+                    }}
+                    todayEntry={todayEntry ? {
+                      id: todayEntry.id,
+                      employeeId: todayEntry.employee_id,
+                      date: todayEntry.date,
+                      clockIn: todayEntry.clock_in,
+                      clockOut: todayEntry.clock_out,
+                    } : undefined}
+                    onClick={() => {
+                      setSelectedEmployee(employee);
+                      setModalOpen(true);
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
 
-        {filteredEmployees.length === 0 && (
+        {!isLoading && filteredEmployees.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No employees found</p>
           </div>
@@ -114,14 +140,30 @@ const Index = () => {
       </div>
 
       {/* Time Entry Modal */}
-      <TimeEntryModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        employee={selectedEmployee}
-        todayEntry={selectedEmployee ? getTodayEntry(selectedEmployee.id) : undefined}
-        onClockIn={handleClockIn}
-        onClockOut={handleClockOut}
-      />
+      {selectedEmployee && (
+        <TimeEntryModal
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          employee={{
+            id: selectedEmployee.id,
+            name: selectedEmployee.name,
+            role: selectedEmployee.role,
+            hourlyRate: selectedEmployee.hourly_rate,
+          }}
+          todayEntry={(() => {
+            const entry = getTodayEntry(selectedEmployee.id);
+            return entry ? {
+              id: entry.id,
+              employeeId: entry.employee_id,
+              date: entry.date,
+              clockIn: entry.clock_in,
+              clockOut: entry.clock_out,
+            } : undefined;
+          })()}
+          onClockIn={handleClockIn}
+          onClockOut={handleClockOut}
+        />
+      )}
     </AppLayout>
   );
 };

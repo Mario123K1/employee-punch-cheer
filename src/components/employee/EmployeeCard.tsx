@@ -37,7 +37,7 @@ export function EmployeeCard({ employee, todayEntry, onClick }: EmployeeCardProp
         {/* Info */}
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-foreground truncate">{employee.name}</h3>
-          <p className="text-sm text-muted-foreground">{employee.department}</p>
+          <p className="text-sm text-muted-foreground">{employee.role || employee.department}</p>
         </div>
 
         {/* Status */}
