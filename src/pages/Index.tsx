@@ -5,12 +5,15 @@ import { TimeEntryModal } from '@/components/employee/TimeEntryModal';
 import { useEmployees, Employee } from '@/hooks/useEmployees';
 import { useTimeEntries, useClockIn, useClockOut, TimeEntry, getUnclosedPreviousEntry } from '@/hooks/useTimeEntries';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
-import { Clock, Search } from 'lucide-react';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
+import { Clock, Search, WifiOff, CloudOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 const Index = () => {
   useRealtimeSubscription();
+  const { isOnline, pendingCount, addOfflineClockIn, addOfflineClockOut } = useOfflineSync();
   
   const { data: employees = [], isLoading: loadingEmployees } = useEmployees();
   const { data: timeEntries = [], isLoading: loadingEntries } = useTimeEntries();
@@ -28,22 +31,37 @@ const Index = () => {
   };
 
   const handleClockIn = async (employeeId: string, time: string) => {
+    if (!isOnline) {
+      addOfflineClockIn(employeeId, today, time);
+      toast.info('Príchod uložený offline - synchronizuje sa keď bude internet');
+      return;
+    }
+    
     try {
       await clockIn.mutateAsync({ employeeId, date: today, time });
       toast.success('Príchod zaznamenaný');
     } catch (error) {
-      toast.error('Chyba pri zázname príchodu');
+      // Save offline if online request fails
+      addOfflineClockIn(employeeId, today, time);
+      toast.warning('Príchod uložený offline - synchronizuje sa neskôr');
     }
   };
 
   const handleClockOut = async (employeeId: string, time: string) => {
     const entry = getTodayEntry(employeeId);
     if (entry) {
+      if (!isOnline) {
+        addOfflineClockOut(employeeId, today, time, entry.id);
+        toast.info('Odchod uložený offline - synchronizuje sa keď bude internet');
+        return;
+      }
+      
       try {
         await clockOut.mutateAsync({ entryId: entry.id, time });
         toast.success('Odchod zaznamenaný');
       } catch (error) {
-        toast.error('Chyba pri zázname odchodu');
+        addOfflineClockOut(employeeId, today, time, entry.id);
+        toast.warning('Odchod uložený offline - synchronizuje sa neskôr');
       }
     }
   };
@@ -95,6 +113,18 @@ const Index = () => {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            {!isOnline && (
+              <Badge variant="destructive" className="gap-1">
+                <WifiOff className="w-3 h-3" />
+                Offline
+              </Badge>
+            )}
+            {pendingCount > 0 && (
+              <Badge variant="secondary" className="gap-1">
+                <CloudOff className="w-3 h-3" />
+                {pendingCount} čaká
+              </Badge>
+            )}
             <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-clockIn/10 text-clockIn">
               <Clock className="w-4 h-4" />
               <span className="font-medium">{clockedInCount} práve pracuje</span>
