@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BarChart3, Clock, Calendar, DollarSign, Download, FileSpreadsheet, Star } from 'lucide-react';
+import { BarChart3, Clock, Calendar, DollarSign, Download, FileSpreadsheet, Star, Coffee } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { sk } from 'date-fns/locale';
@@ -18,6 +18,8 @@ import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 import { EmployeeDetailModal } from './EmployeeDetailModal';
 import { useHolidays, isHoliday } from '@/hooks/useHolidays';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface MonthlyReportProps {
   employees: Employee[];
@@ -35,7 +37,38 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth().toString());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
   const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; name: string } | null>(null);
+  const [togglingBreak, setTogglingBreak] = useState<string | null>(null);
   const { data: holidays = [] } = useHolidays();
+  const queryClient = useQueryClient();
+  const today = format(new Date(), 'yyyy-MM-dd');
+
+  const getTodayEntry = (employeeId: string) => {
+    return timeEntries.find(
+      t => t.employeeId === employeeId && t.date === today && t.clockIn && !t.clockOut
+    );
+  };
+
+  const handleToggleBreak = async (employeeId: string) => {
+    const entry = getTodayEntry(employeeId);
+    if (!entry) return;
+
+    setTogglingBreak(employeeId);
+    try {
+      const { error } = await supabase
+        .from('time_entries')
+        .update({ break_taken: !entry.breakTaken })
+        .eq('id', entry.id);
+
+      if (error) throw error;
+
+      toast.success(entry.breakTaken ? 'Prestávka zrušená' : 'Prestávka označená');
+      queryClient.invalidateQueries({ queryKey: ['time_entries'] });
+    } catch (error) {
+      toast.error('Chyba pri označovaní prestávky');
+    } finally {
+      setTogglingBreak(null);
+    }
+  };
 
   const calculateHours = (clockIn: string, clockOut: string, breakTaken: boolean = false): number => {
     const [inH, inM] = clockIn.split(':').map(Number);
@@ -99,14 +132,9 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
 
   const totalWages = reports.reduce((sum, r) => sum + r.calculatedWage, 0);
   const totalHours = reports.reduce((sum, r) => sum + r.totalHours, 0);
-
-  const today = format(new Date(), 'yyyy-MM-dd');
   
   const isAtWork = (employeeId: string) => {
-    const todayEntry = timeEntries.find(
-      t => t.employeeId === employeeId && t.date === today && t.clockIn && !t.clockOut
-    );
-    return !!todayEntry;
+    return !!getTodayEntry(employeeId);
   };
 
   const handleExport = () => {
@@ -345,24 +373,42 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                 </tr>
               </thead>
               <tbody>
-                {reports.map((report) => (
+                {reports.map((report) => {
+                  const todayEntry = getTodayEntry(report.employeeId);
+                  const atWork = isAtWork(report.employeeId);
+                  
+                  return (
                   <tr key={report.employeeId} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                     <td className="py-3 px-4">
-                      <button
-                        className="flex items-center gap-3 hover:text-primary transition-colors text-left"
-                        onClick={() => setSelectedEmployee({ id: report.employeeId, name: report.employeeName })}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold">
-                          {report.employeeName.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        <span className="font-medium underline-offset-2 hover:underline">{report.employeeName}</span>
-                        {isAtWork(report.employeeId) && (
-                          <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-white gap-1 ml-1">
+                      <div className="flex items-center gap-3">
+                        <button
+                          className="flex items-center gap-3 hover:text-primary transition-colors text-left"
+                          onClick={() => setSelectedEmployee({ id: report.employeeId, name: report.employeeName })}
+                        >
+                          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold">
+                            {report.employeeName.split(' ').map(n => n[0]).join('')}
+                          </div>
+                          <span className="font-medium underline-offset-2 hover:underline">{report.employeeName}</span>
+                        </button>
+                        {atWork && (
+                          <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-white gap-1">
                             <Clock className="w-3 h-3" />
                             V práci
                           </Badge>
                         )}
-                      </button>
+                        {atWork && (
+                          <Button
+                            size="sm"
+                            variant={todayEntry?.breakTaken ? "secondary" : "outline"}
+                            onClick={() => handleToggleBreak(report.employeeId)}
+                            disabled={togglingBreak === report.employeeId}
+                            className="gap-1 h-7"
+                          >
+                            <Coffee className="w-3 h-3" />
+                            {todayEntry?.breakTaken ? '✓' : ''}
+                          </Button>
+                        )}
+                      </div>
                     </td>
                     <td className="text-right py-3 px-4">{report.totalDays}</td>
                     <td className="text-right py-3 px-4 font-medium">{report.totalHours}h</td>
@@ -394,7 +440,8 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                       </Button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
