@@ -185,6 +185,7 @@ const Index = () => {
                       breakTaken: todayEntry.break_taken,
                     } : undefined}
                     hasUnclosedEntry={!!unclosedEntry}
+                    onToggleBreak={handleToggleBreak}
                     onClick={() => {
                       setSelectedEmployee(employee);
                       setModalOpen(true);

@@ -215,20 +215,14 @@ export function TimeEntryModal({
               {/* Break Toggle Button - available while working */}
               {onToggleBreak && (
                 <Button
-                  variant={todayEntry?.breakTaken ? "default" : "outline"}
-                  className={cn(
-                    "w-full gap-2",
-                    todayEntry?.breakTaken 
-                      ? "bg-amber-500 hover:bg-amber-600 text-white" 
-                      : "border-amber-500 text-amber-600 hover:bg-amber-500/10"
-                  )}
+                  variant={todayEntry?.breakTaken ? "secondary" : "outline"}
+                  className="w-full gap-2"
                   onClick={handleToggleBreak}
                 >
                   <Coffee className="w-4 h-4" />
-                  {todayEntry?.breakTaken 
-                    ? "Prestávka označená (−30 min)" 
-                    : "Označiť prestávku (−30 min)"
-                  }
+                  {todayEntry?.breakTaken
+                    ? "Prestávka označená (−30 min)"
+                    : "Označiť prestávku (−30 min)"}
                 </Button>
               )}
               
@@ -280,20 +274,14 @@ export function TimeEntryModal({
               {/* Break Toggle Button */}
               {onToggleBreak && (
                 <Button
-                  variant={todayEntry?.breakTaken ? "default" : "outline"}
-                  className={cn(
-                    "w-full gap-2",
-                    todayEntry?.breakTaken 
-                      ? "bg-amber-500 hover:bg-amber-600 text-white" 
-                      : "border-amber-500 text-amber-600 hover:bg-amber-500/10"
-                  )}
+                  variant={todayEntry?.breakTaken ? "secondary" : "outline"}
+                  className="w-full gap-2"
                   onClick={handleToggleBreak}
                 >
                   <Coffee className="w-4 h-4" />
-                  {todayEntry?.breakTaken 
-                    ? "Prestávka označená (−30 min)" 
-                    : "Označiť prestávku (−30 min)"
-                  }
+                  {todayEntry?.breakTaken
+                    ? "Prestávka označená (−30 min)"
+                    : "Označiť prestávku (−30 min)"}
                 </Button>
               )}
               <p className="text-xs text-muted-foreground text-center">
