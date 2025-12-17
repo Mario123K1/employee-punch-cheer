@@ -27,9 +27,9 @@ const Index = () => {
   const handleClockIn = async (employeeId: string, time: string) => {
     try {
       await clockIn.mutateAsync({ employeeId, date: today, time });
-      toast.success('Clocked in successfully');
+      toast.success('Príchod zaznamenaný');
     } catch (error) {
-      toast.error('Failed to clock in');
+      toast.error('Chyba pri zázname príchodu');
     }
   };
 
@@ -38,9 +38,9 @@ const Index = () => {
     if (entry) {
       try {
         await clockOut.mutateAsync({ entryId: entry.id, time });
-        toast.success('Clocked out successfully');
+        toast.success('Odchod zaznamenaný');
       } catch (error) {
-        toast.error('Failed to clock out');
+        toast.error('Chyba pri zázname odchodu');
       }
     }
   };
@@ -63,9 +63,9 @@ const Index = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Time Clock</h1>
+            <h1 className="text-2xl font-bold text-foreground">Dochádzka</h1>
             <p className="text-muted-foreground">
-              {new Date().toLocaleDateString('en-US', { 
+              {new Date().toLocaleDateString('sk-SK', { 
                 weekday: 'long', 
                 year: 'numeric', 
                 month: 'long', 
@@ -76,7 +76,7 @@ const Index = () => {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-clockIn/10 text-clockIn">
               <Clock className="w-4 h-4" />
-              <span className="font-medium">{clockedInCount} currently working</span>
+              <span className="font-medium">{clockedInCount} práve pracuje</span>
             </div>
           </div>
         </div>
@@ -85,7 +85,7 @@ const Index = () => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
-            placeholder="Search employees..."
+            placeholder="Hľadať zamestnancov..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -95,7 +95,7 @@ const Index = () => {
         {/* Employee Grid */}
         {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading employees...</p>
+            <p className="text-muted-foreground">Načítavam zamestnancov...</p>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -134,7 +134,7 @@ const Index = () => {
 
         {!isLoading && filteredEmployees.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No employees found</p>
+            <p className="text-muted-foreground">Žiadni zamestnanci nenájdení</p>
           </div>
         )}
       </div>

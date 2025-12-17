@@ -13,8 +13,8 @@ import { Lock, Mail, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const authSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('Zadajte platnú emailovú adresu'),
+  password: z.string().min(6, 'Heslo musí mať aspoň 6 znakov'),
 });
 
 type AuthFormData = z.infer<typeof authSchema>;
@@ -46,24 +46,24 @@ export default function AuthPage() {
         const { error } = await signIn(data.email, data.password);
         if (error) {
           if (error.message.includes('Invalid login credentials')) {
-            toast.error('Invalid email or password');
+            toast.error('Nesprávny email alebo heslo');
           } else {
             toast.error(error.message);
           }
           return;
         }
-        toast.success('Logged in successfully');
+        toast.success('Úspešne prihlásený');
       } else {
         const { error } = await signUp(data.email, data.password);
         if (error) {
           if (error.message.includes('User already registered')) {
-            toast.error('An account with this email already exists');
+            toast.error('Účet s týmto emailom už existuje');
           } else {
             toast.error(error.message);
           }
           return;
         }
-        toast.success('Account created! You can now log in.');
+        toast.success('Účet vytvorený! Teraz sa môžete prihlásiť.');
         setIsLogin(true);
         form.reset();
       }
@@ -82,12 +82,12 @@ export default function AuthPage() {
             </Link>
           </div>
           <CardTitle className="text-2xl font-bold text-center">
-            {isLogin ? 'Admin Login' : 'Create Admin Account'}
+            {isLogin ? 'Prihlásenie administrátora' : 'Vytvoriť účet administrátora'}
           </CardTitle>
           <CardDescription className="text-center">
             {isLogin
-              ? 'Enter your credentials to access the admin panel'
-              : 'Create an account to manage employees'}
+              ? 'Zadajte prihlasovacie údaje pre prístup do správy'
+              : 'Vytvorte si účet pre správu zamestnancov'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -118,7 +118,7 @@ export default function AuthPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Heslo</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -135,7 +135,7 @@ export default function AuthPage() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
+                {isLoading ? 'Počkajte...' : isLogin ? 'Prihlásiť sa' : 'Vytvoriť účet'}
               </Button>
             </form>
           </Form>
@@ -145,7 +145,7 @@ export default function AuthPage() {
               onClick={() => setIsLogin(!isLogin)}
               className="text-primary hover:underline"
             >
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+              {isLogin ? 'Nemáte účet? Zaregistrujte sa' : 'Už máte účet? Prihláste sa'}
             </button>
           </div>
         </CardContent>

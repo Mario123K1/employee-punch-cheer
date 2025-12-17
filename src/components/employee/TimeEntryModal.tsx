@@ -81,10 +81,10 @@ export function TimeEntryModal({
           </DialogTitle>
           <DialogDescription>
             {hasCompleted 
-              ? `Already completed today (${todayEntry?.clockIn} - ${todayEntry?.clockOut})`
+              ? `Dnes už dokončené (${todayEntry?.clockIn} - ${todayEntry?.clockOut})`
               : isClockedIn 
-                ? `Currently working since ${todayEntry?.clockIn}`
-                : 'Record your time entry for today'}
+                ? `Pracuje od ${todayEntry?.clockIn}`
+                : 'Zaznamenajte dochádzku na dnešný deň'}
           </DialogDescription>
         </DialogHeader>
 
@@ -93,7 +93,7 @@ export function TimeEntryModal({
           {!isClockedIn && !hasCompleted && (
             <div className="space-y-3">
               <Label htmlFor="clockIn" className="text-sm font-medium">
-                Clock In Time
+                Čas príchodu
               </Label>
               <div className="flex gap-2">
                 <Input
@@ -111,11 +111,11 @@ export function TimeEntryModal({
                   className="gap-2"
                 >
                   <LogIn className="w-4 h-4" />
-                  Clock In
+                  Príchod
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Leave empty to use current time ({getCurrentTime()})
+                Nechajte prázdne pre aktuálny čas ({getCurrentTime()})
               </p>
             </div>
           )}
@@ -126,12 +126,12 @@ export function TimeEntryModal({
               <div className="p-3 rounded-lg bg-clockIn/10 border border-clockIn/20">
                 <p className="text-sm font-medium text-clockIn">
                   <Clock className="w-4 h-4 inline mr-2" />
-                  Clocked in at {todayEntry?.clockIn}
+                  Príchod o {todayEntry?.clockIn}
                 </p>
               </div>
               
               <Label htmlFor="clockOut" className="text-sm font-medium">
-                Clock Out Time
+                Čas odchodu
               </Label>
               <div className="flex gap-2">
                 <Input
@@ -149,11 +149,11 @@ export function TimeEntryModal({
                   className="gap-2"
                 >
                   <LogOut className="w-4 h-4" />
-                  Clock Out
+                  Odchod
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Leave empty to use current time ({getCurrentTime()})
+                Nechajte prázdne pre aktuálny čas ({getCurrentTime()})
               </p>
             </div>
           )}
@@ -162,7 +162,7 @@ export function TimeEntryModal({
           {hasCompleted && (
             <div className="p-4 rounded-lg bg-muted text-center">
               <p className="text-sm text-muted-foreground">
-                Time entry completed for today
+                Dochádzka na dnešok dokončená
               </p>
               <p className="font-semibold mt-1">
                 {todayEntry?.clockIn} → {todayEntry?.clockOut}
