@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Employee, TimeEntry, VacationDay, MonthlyReport as MonthlyReportType } from '@/types/employee';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -8,8 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BarChart3, Clock, Calendar, DollarSign } from 'lucide-react';
+import { BarChart3, Clock, Calendar, DollarSign, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import * as XLSX from 'xlsx';
+import { toast } from 'sonner';
 
 interface MonthlyReportProps {
   employees: Employee[];
@@ -70,34 +73,81 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
   const totalWages = reports.reduce((sum, r) => sum + r.calculatedWage, 0);
   const totalHours = reports.reduce((sum, r) => sum + r.totalHours, 0);
 
+  const handleExport = () => {
+    const exportData = reports.map(report => ({
+      'Zamestnanec': report.employeeName,
+      'Odpracované dni': report.totalDays,
+      'Odpracované hodiny': report.totalHours,
+      'Dni voľna': report.vacationDays,
+      'Hodinová sadzba (€)': report.hourlyRate,
+      'Celková mzda (€)': report.calculatedWage,
+    }));
+
+    // Add summary row
+    exportData.push({
+      'Zamestnanec': 'CELKOM',
+      'Odpracované dni': reports.reduce((sum, r) => sum + r.totalDays, 0),
+      'Odpracované hodiny': totalHours,
+      'Dni voľna': reports.reduce((sum, r) => sum + r.vacationDays, 0),
+      'Hodinová sadzba (€)': 0,
+      'Celková mzda (€)': totalWages,
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Výplaty');
+
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 25 }, // Zamestnanec
+      { wch: 15 }, // Odpracované dni
+      { wch: 18 }, // Odpracované hodiny
+      { wch: 12 }, // Dni voľna
+      { wch: 18 }, // Hodinová sadzba
+      { wch: 16 }, // Celková mzda
+    ];
+
+    const monthName = months[parseInt(selectedMonth)];
+    const fileName = `vyplaty_${monthName}_${selectedYear}.xlsx`;
+    
+    XLSX.writeFile(workbook, fileName);
+    toast.success(`Export "${fileName}" bol stiahnutý`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {months.map((month, index) => (
-              <SelectItem key={month} value={index.toString()}>
-                {month}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
-          <SelectTrigger className="w-28">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {[2023, 2024, 2025].map(year => (
-              <SelectItem key={year} value={year.toString()}>
-                {year}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-3">
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((month, index) => (
+                <SelectItem key={month} value={index.toString()}>
+                  {month}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-28">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[2023, 2024, 2025].map(year => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button onClick={handleExport} className="gap-2">
+          <Download className="w-4 h-4" />
+          Export do Excel
+        </Button>
       </div>
 
       {/* Summary Cards */}
