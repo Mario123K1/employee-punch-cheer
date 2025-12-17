@@ -4,11 +4,14 @@ import { EmployeeCard } from '@/components/employee/EmployeeCard';
 import { TimeEntryModal } from '@/components/employee/TimeEntryModal';
 import { useEmployees, Employee } from '@/hooks/useEmployees';
 import { useTimeEntries, useClockIn, useClockOut, TimeEntry, getUnclosedPreviousEntry } from '@/hooks/useTimeEntries';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { Clock, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
 const Index = () => {
+  useRealtimeSubscription();
+  
   const { data: employees = [], isLoading: loadingEmployees } = useEmployees();
   const { data: timeEntries = [], isLoading: loadingEntries } = useTimeEntries();
   const clockIn = useClockIn();
