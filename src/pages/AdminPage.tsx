@@ -6,6 +6,7 @@ import { WageCalculator } from '@/components/admin/WageCalculator';
 import { EmployeeRates } from '@/components/admin/EmployeeRates';
 import { VacationManagement } from '@/components/admin/VacationManagement';
 import { UnclosedEntries } from '@/components/admin/UnclosedEntries';
+import { HolidaysCalendar } from '@/components/admin/HolidaysCalendar';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useTimeEntries } from '@/hooks/useTimeEntries';
 import { useVacationDays } from '@/hooks/useVacationDays';
@@ -13,7 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { BarChart3, Calculator, LogOut, Users, Calendar, AlertTriangle } from 'lucide-react';
+import { BarChart3, Calculator, LogOut, Users, Calendar, AlertTriangle, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AdminPage = () => {
@@ -103,7 +104,7 @@ const AdminPage = () => {
           </div>
         ) : (
           <Tabs defaultValue="reports" className="w-full">
-            <TabsList className="grid w-full max-w-3xl grid-cols-5">
+            <TabsList className="grid w-full max-w-4xl grid-cols-6">
               <TabsTrigger value="reports" className="gap-2">
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Reporty</span>
@@ -115,6 +116,10 @@ const AdminPage = () => {
               <TabsTrigger value="vacations" className="gap-2">
                 <Calendar className="w-4 h-4" />
                 <span className="hidden sm:inline">Dovolenky</span>
+              </TabsTrigger>
+              <TabsTrigger value="holidays" className="gap-2">
+                <Sparkles className="w-4 h-4" />
+                <span className="hidden sm:inline">Sviatky</span>
               </TabsTrigger>
               <TabsTrigger value="rates" className="gap-2">
                 <Users className="w-4 h-4" />
@@ -146,6 +151,10 @@ const AdminPage = () => {
                 vacationDays={transformedVacations}
                 employees={transformedEmployees}
               />
+            </TabsContent>
+
+            <TabsContent value="holidays" className="mt-6">
+              <HolidaysCalendar />
             </TabsContent>
 
             <TabsContent value="rates" className="mt-6">
