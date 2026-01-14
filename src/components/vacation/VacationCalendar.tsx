@@ -47,7 +47,10 @@ export function VacationCalendar({
       const days = eachDayOfInterval({ start: startDate, end: endDate });
       
       for (const day of days) {
-        await onAddVacation(selectedEmployee, day, vacationType);
+        // Normalize to noon to avoid timezone shifts at midnight
+        const normalizedDay = new Date(day);
+        normalizedDay.setHours(12, 0, 0, 0);
+        await onAddVacation(selectedEmployee, normalizedDay, vacationType);
       }
       
       setDateRange(undefined);
