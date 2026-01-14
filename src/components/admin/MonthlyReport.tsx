@@ -163,10 +163,33 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       .filter(e => e.employeeId === employeeId && e.date.startsWith(monthPrefix))
       .sort((a, b) => a.date.localeCompare(b.date));
 
+    const employeeVacations = vacationDays
+      .filter(v => v.employeeId === employeeId && v.date.startsWith(monthPrefix))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
     const employee = employees.find(e => e.id === employeeId);
     const hourlyRate = employee?.hourlyRate || 0;
 
-    const exportData = employeeEntries.map(entry => {
+    const getVacationTypeLabel = (type: VacationDay['type']) => {
+      switch (type) {
+        case 'vacation': return 'Dovolenka';
+        case 'sick': return 'PN';
+        case 'personal': return 'Osobné voľno';
+      }
+    };
+
+    // Combine work entries and vacation days into one list
+    type ExportRow = {
+      'Dátum': string;
+      'Typ': string;
+      'Príchod': string;
+      'Odchod': string;
+      'Prestávka': string;
+      'Hodiny': number;
+      'Mzda (€)': number;
+    };
+
+    const workRows: ExportRow[] = employeeEntries.map(entry => {
       const hours = entry.clockIn && entry.clockOut 
         ? Math.round(calculateHours(entry.clockIn, entry.clockOut, entry.breakTaken) * 100) / 100 
         : 0;
@@ -174,7 +197,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       const multiplier = holiday ? 2 : 1;
       return {
         'Dátum': format(new Date(entry.date), 'd.M.yyyy (EEEE)', { locale: sk }),
-        'Sviatok': holiday ? holiday.name : '',
+        'Typ': holiday ? `Sviatok: ${holiday.name}` : 'Práca',
         'Príchod': entry.clockIn || '-',
         'Odchod': entry.clockOut || '-',
         'Prestávka': entry.breakTaken ? 'Áno (-30min)' : 'Nie',
@@ -183,22 +206,39 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       };
     });
 
-    const totalHrs = exportData.reduce((sum, row) => sum + (row['Hodiny'] as number), 0);
-    const totalWage = exportData.reduce((sum, row) => sum + (row['Mzda (€)'] as number), 0);
+    const vacationRows: ExportRow[] = employeeVacations.map(vacation => ({
+      'Dátum': format(new Date(vacation.date), 'd.M.yyyy (EEEE)', { locale: sk }),
+      'Typ': getVacationTypeLabel(vacation.type),
+      'Príchod': '-',
+      'Odchod': '-',
+      'Prestávka': '-',
+      'Hodiny': 0,
+      'Mzda (€)': 0,
+    }));
+
+    // Merge and sort by date
+    const allRows = [...workRows, ...vacationRows].sort((a, b) => {
+      const dateA = a['Dátum'].split(' ')[0].split('.').reverse().join('-');
+      const dateB = b['Dátum'].split(' ')[0].split('.').reverse().join('-');
+      return dateA.localeCompare(dateB);
+    });
+
+    const totalHrs = allRows.reduce((sum, row) => sum + row['Hodiny'], 0);
+    const totalWage = allRows.reduce((sum, row) => sum + row['Mzda (€)'], 0);
 
     // Add empty row and totals
-    exportData.push({
+    allRows.push({
       'Dátum': '',
-      'Sviatok': '',
+      'Typ': '',
       'Príchod': '',
       'Odchod': '',
       'Prestávka': '',
       'Hodiny': 0,
       'Mzda (€)': 0,
     });
-    exportData.push({
+    allRows.push({
       'Dátum': 'CELKOM',
-      'Sviatok': '',
+      'Typ': `Voľno: ${employeeVacations.length} dní`,
       'Príchod': '',
       'Odchod': '',
       'Prestávka': '',
@@ -206,12 +246,12 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Mzda (€)': Math.round(totalWage * 100) / 100,
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const worksheet = XLSX.utils.json_to_sheet(allRows);
     const workbook = XLSX.utils.book_new();
     
     worksheet['!cols'] = [
       { wch: 22 },
-      { wch: 25 },
+      { wch: 20 },
       { wch: 10 },
       { wch: 10 },
       { wch: 15 },
