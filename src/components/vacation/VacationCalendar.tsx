@@ -32,12 +32,13 @@ export function VacationCalendar({
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [vacationType, setVacationType] = useState<VacationDay['type']>('vacation');
 
+  // Ensure YYYY-MM-DD dates don't shift because of timezone
+  const toLocalDate = (isoDate: string) => new Date(`${isoDate}T00:00:00`);
   const employeeVacations = selectedEmployee
     ? vacationDays.filter(v => v.employeeId === selectedEmployee)
     : vacationDays;
 
-  const vacationDates = employeeVacations.map(v => new Date(v.date));
-
+  const vacationDates = employeeVacations.map(v => toLocalDate(v.date));
   const handleAddVacation = async () => {
     if (selectedEmployee && dateRange?.from) {
       const startDate = dateRange.from;
@@ -183,7 +184,7 @@ export function VacationCalendar({
                       <div>
                         <p className="font-medium text-sm">{employee?.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(vacation.date).toLocaleDateString('sk-SK')}
+                          {toLocalDate(vacation.date).toLocaleDateString('sk-SK')}
                         </p>
                       </div>
                     </div>

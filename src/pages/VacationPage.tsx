@@ -3,6 +3,7 @@ import { VacationCalendar } from '@/components/vacation/VacationCalendar';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useVacationDays, useAddVacation, useRemoveVacation } from '@/hooks/useVacationDays';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 const VacationPage = () => {
   const { data: employees = [], isLoading: loadingEmployees } = useEmployees();
@@ -14,7 +15,7 @@ const VacationPage = () => {
     try {
       await addVacation.mutateAsync({
         employeeId,
-        date: date.toISOString().split('T')[0],
+        date: format(date, 'yyyy-MM-dd'),
         type,
       });
       toast.success('Voľno naplánované');
