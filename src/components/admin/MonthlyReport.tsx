@@ -180,6 +180,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
 
     // Combine work entries and vacation days into one list
     type ExportRow = {
+      sortDate: string;
       'Dátum': string;
       'Typ': string;
       'Príchod': string;
@@ -189,13 +190,14 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Mzda (€)': number;
     };
 
-    const workRows: ExportRow[] = employeeEntries.map(entry => {
+    const workRows = employeeEntries.map(entry => {
       const hours = entry.clockIn && entry.clockOut 
         ? Math.round(calculateHours(entry.clockIn, entry.clockOut, entry.breakTaken) * 100) / 100 
         : 0;
       const holiday = isHoliday(entry.date, holidays);
       const multiplier = holiday ? 2 : 1;
       return {
+        sortDate: entry.date,
         'Dátum': format(new Date(entry.date), 'd.M.yyyy (EEEE)', { locale: sk }),
         'Typ': holiday ? `Sviatok: ${holiday.name}` : 'Práca',
         'Príchod': entry.clockIn || '-',
@@ -206,7 +208,8 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       };
     });
 
-    const vacationRows: ExportRow[] = employeeVacations.map(vacation => ({
+    const vacationRows = employeeVacations.map(vacation => ({
+      sortDate: vacation.date,
       'Dátum': format(new Date(vacation.date), 'd.M.yyyy (EEEE)', { locale: sk }),
       'Typ': getVacationTypeLabel(vacation.type),
       'Príchod': '-',
@@ -216,18 +219,20 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Mzda (€)': 0,
     }));
 
-    // Merge and sort by date
-    const allRows = [...workRows, ...vacationRows].sort((a, b) => {
-      const dateA = a['Dátum'].split(' ')[0].split('.').reverse().join('-');
-      const dateB = b['Dátum'].split(' ')[0].split('.').reverse().join('-');
-      return dateA.localeCompare(dateB);
-    });
+    // Merge and sort by date (ascending - earliest first)
+    const allRows = [...workRows, ...vacationRows].sort((a, b) => 
+      a.sortDate.localeCompare(b.sortDate)
+    );
 
-    const totalHrs = allRows.reduce((sum, row) => sum + row['Hodiny'], 0);
-    const totalWage = allRows.reduce((sum, row) => sum + row['Mzda (€)'], 0);
+    // Remove sortDate before export
+    type FinalRow = Omit<ExportRow, 'sortDate'>;
+    const exportRows: FinalRow[] = allRows.map(({ sortDate, ...rest }) => rest);
+
+    const totalHrs = exportRows.reduce((sum, row) => sum + row['Hodiny'], 0);
+    const totalWage = exportRows.reduce((sum, row) => sum + row['Mzda (€)'], 0);
 
     // Add empty row and totals
-    allRows.push({
+    exportRows.push({
       'Dátum': '',
       'Typ': '',
       'Príchod': '',
@@ -236,7 +241,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Hodiny': 0,
       'Mzda (€)': 0,
     });
-    allRows.push({
+    exportRows.push({
       'Dátum': 'CELKOM',
       'Typ': `Voľno: ${employeeVacations.length} dní`,
       'Príchod': '',
@@ -246,7 +251,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Mzda (€)': Math.round(totalWage * 100) / 100,
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(allRows);
+    const worksheet = XLSX.utils.json_to_sheet(exportRows);
     const workbook = XLSX.utils.book_new();
     
     worksheet['!cols'] = [
