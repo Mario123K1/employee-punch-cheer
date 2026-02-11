@@ -13,6 +13,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Clock, LogIn, LogOut, AlertTriangle, Coffee } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { calculateWorkedHours } from '@/lib/timeUtils';
 import { format } from 'date-fns';
 import { sk } from 'date-fns/locale';
 
@@ -100,14 +101,7 @@ export function TimeEntryModal({
   // Calculate displayed hours
   const calculateHours = () => {
     if (!todayEntry?.clockIn || !todayEntry?.clockOut) return null;
-    const [inH, inM] = todayEntry.clockIn.split(':').map(Number);
-    const [outH, outM] = todayEntry.clockOut.split(':').map(Number);
-    const totalMinutes = (outH * 60 + outM) - (inH * 60 + inM);
-    let hours = Math.max(0, totalMinutes / 60);
-    if (todayEntry.breakTaken) {
-      hours = Math.max(0, hours - 0.5);
-    }
-    return Math.round(hours * 100) / 100;
+    return Math.round(calculateWorkedHours(todayEntry.clockIn, todayEntry.clockOut, todayEntry.breakTaken) * 100) / 100;
   };
 
   if (!employee) return null;

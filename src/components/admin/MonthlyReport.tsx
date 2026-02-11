@@ -18,6 +18,7 @@ import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 import { EmployeeDetailModal } from './EmployeeDetailModal';
 import { useHolidays, isHoliday } from '@/hooks/useHolidays';
+import { calculateWorkedHours } from '@/lib/timeUtils';
 
 interface MonthlyReportProps {
   employees: Employee[];
@@ -44,16 +45,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
     );
   };
 
-  const calculateHours = (clockIn: string, clockOut: string, breakTaken: boolean = false): number => {
-    const [inH, inM] = clockIn.split(':').map(Number);
-    const [outH, outM] = clockOut.split(':').map(Number);
-    const totalMinutes = (outH * 60 + outM) - (inH * 60 + inM);
-    let hours = Math.max(0, totalMinutes / 60);
-    if (breakTaken) {
-      hours = Math.max(0, hours - 0.5);
-    }
-    return hours;
-  };
+  const calculateHours = calculateWorkedHours;
 
   const reports = useMemo(() => {
     const monthNum = parseInt(selectedMonth) + 1;
