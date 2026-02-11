@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { sk } from 'date-fns/locale';
 import { Clock, LogIn, LogOut, Star } from 'lucide-react';
 import { useHolidays, isHoliday } from '@/hooks/useHolidays';
+import { calculateWorkedHours } from '@/lib/timeUtils';
 
 interface TimeEntry {
   id: string;
@@ -28,16 +29,7 @@ export const EmployeeDetailModal = ({
 }: EmployeeDetailModalProps) => {
   const { data: holidays = [] } = useHolidays();
 
-  const calculateHours = (clockIn: string, clockOut: string, breakTaken: boolean = false): number => {
-    const [inH, inM] = clockIn.split(':').map(Number);
-    const [outH, outM] = clockOut.split(':').map(Number);
-    const totalMinutes = (outH * 60 + outM) - (inH * 60 + inM);
-    let hours = Math.max(0, totalMinutes / 60);
-    if (breakTaken) {
-      hours = Math.max(0, hours - 0.5);
-    }
-    return hours;
-  };
+  const calculateHours = calculateWorkedHours;
 
   const sortedEntries = [...timeEntries].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
