@@ -447,6 +447,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
           isOpen={!!selectedEmployee}
           onClose={() => setSelectedEmployee(null)}
           employeeName={selectedEmployee.name}
+          employeeId={selectedEmployee.id}
           timeEntries={timeEntries.filter(e => e.employeeId === selectedEmployee.id)}
         />
       )}
