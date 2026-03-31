@@ -71,15 +71,18 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
         }
       });
 
-      const totalHours = regularHours + holidayHours;
       const employeeVacations = vacationDays.filter(
         v => v.employeeId === employee.id && v.date.startsWith(monthPrefix)
       );
 
-      // Regular pay + 100% bonus for holiday hours
+      const vacationHours = employeeVacations.filter(v => v.type === 'vacation').length * 7.5;
+      const totalHours = regularHours + holidayHours + vacationHours;
+
+      // Regular pay + 100% bonus for holiday hours + vacation hours at regular rate
       const regularWage = regularHours * employee.hourlyRate;
       const holidayWage = holidayHours * employee.hourlyRate * 2; // 100% príplatok = 2x sadzba
-      const calculatedWage = regularWage + holidayWage;
+      const vacationWage = vacationHours * employee.hourlyRate;
+      const calculatedWage = regularWage + holidayWage + vacationWage;
 
       return {
         employeeId: employee.id,
@@ -87,6 +90,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
         totalHours: Math.round(totalHours * 100) / 100,
         regularHours: Math.round(regularHours * 100) / 100,
         holidayHours: Math.round(holidayHours * 100) / 100,
+        vacationHours: Math.round(vacationHours * 100) / 100,
         totalDays: employeeEntries.length,
         vacationDays: employeeVacations.length,
         hourlyRate: employee.hourlyRate,
