@@ -71,15 +71,18 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
         }
       });
 
-      const totalHours = regularHours + holidayHours;
       const employeeVacations = vacationDays.filter(
         v => v.employeeId === employee.id && v.date.startsWith(monthPrefix)
       );
 
-      // Regular pay + 100% bonus for holiday hours
+      const vacationHours = employeeVacations.filter(v => v.type === 'vacation').length * 7.5;
+      const totalHours = regularHours + holidayHours + vacationHours;
+
+      // Regular pay + 100% bonus for holiday hours + vacation hours at regular rate
       const regularWage = regularHours * employee.hourlyRate;
       const holidayWage = holidayHours * employee.hourlyRate * 2; // 100% príplatok = 2x sadzba
-      const calculatedWage = regularWage + holidayWage;
+      const vacationWage = vacationHours * employee.hourlyRate;
+      const calculatedWage = regularWage + holidayWage + vacationWage;
 
       return {
         employeeId: employee.id,
@@ -87,6 +90,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
         totalHours: Math.round(totalHours * 100) / 100,
         regularHours: Math.round(regularHours * 100) / 100,
         holidayHours: Math.round(holidayHours * 100) / 100,
+        vacationHours: Math.round(vacationHours * 100) / 100,
         totalDays: employeeEntries.length,
         vacationDays: employeeVacations.length,
         hourlyRate: employee.hourlyRate,
@@ -106,7 +110,8 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Odpracované hodiny': report.totalHours,
       'Hodiny cez sviatok': report.holidayHours,
       'Príplatok za sviatky (€)': report.holidayBonus,
-      'Dni voľna': report.vacationDays,
+      'Dni dovolenky': report.vacationDays,
+      'Hodiny dovolenka': report.vacationHours,
       'Hodinová sadzba (€)': report.hourlyRate,
       'Celková mzda (€)': report.calculatedWage,
     }));
@@ -118,7 +123,8 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Odpracované hodiny': totalHours,
       'Hodiny cez sviatok': reports.reduce((sum, r) => sum + r.holidayHours, 0),
       'Príplatok za sviatky (€)': reports.reduce((sum, r) => sum + r.holidayBonus, 0),
-      'Dni voľna': reports.reduce((sum, r) => sum + r.vacationDays, 0),
+      'Dni dovolenky': reports.reduce((sum, r) => sum + r.vacationDays, 0),
+      'Hodiny dovolenka': reports.reduce((sum, r) => sum + r.vacationHours, 0),
       'Hodinová sadzba (€)': 0,
       'Celková mzda (€)': totalWages,
     });
@@ -134,7 +140,8 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       { wch: 18 }, // Odpracované hodiny
       { wch: 18 }, // Hodiny cez sviatok
       { wch: 20 }, // Príplatok za sviatky
-      { wch: 12 }, // Dni voľna
+      { wch: 15 }, // Dni dovolenky
+      { wch: 18 }, // Hodiny dovolenka
       { wch: 18 }, // Hodinová sadzba
       { wch: 16 }, // Celková mzda
     ];
@@ -200,16 +207,20 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       };
     });
 
-    const vacationRows = employeeVacations.map(vacation => ({
-      sortDate: vacation.date,
-      'Dátum': format(new Date(vacation.date), 'd.M.yyyy (EEEE)', { locale: sk }),
-      'Typ': getVacationTypeLabel(vacation.type),
-      'Príchod': '-',
-      'Odchod': '-',
-      'Prestávka': '-',
-      'Hodiny': 0,
-      'Mzda (€)': 0,
-    }));
+    const vacationRows = employeeVacations.map(vacation => {
+      const isVacation = vacation.type === 'vacation';
+      const vacHours = isVacation ? 7.5 : 0;
+      return {
+        sortDate: vacation.date,
+        'Dátum': format(new Date(vacation.date), 'd.M.yyyy (EEEE)', { locale: sk }),
+        'Typ': getVacationTypeLabel(vacation.type),
+        'Príchod': '-',
+        'Odchod': '-',
+        'Prestávka': '-',
+        'Hodiny': vacHours,
+        'Mzda (€)': Math.round(vacHours * hourlyRate * 100) / 100,
+      };
+    });
 
     // Merge and sort by date (ascending - earliest first)
     const allRows = [...workRows, ...vacationRows].sort((a, b) => 
