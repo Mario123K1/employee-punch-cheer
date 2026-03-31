@@ -140,7 +140,8 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       { wch: 18 }, // Odpracované hodiny
       { wch: 18 }, // Hodiny cez sviatok
       { wch: 20 }, // Príplatok za sviatky
-      { wch: 12 }, // Dni voľna
+      { wch: 15 }, // Dni dovolenky
+      { wch: 18 }, // Hodiny dovolenka
       { wch: 18 }, // Hodinová sadzba
       { wch: 16 }, // Celková mzda
     ];
