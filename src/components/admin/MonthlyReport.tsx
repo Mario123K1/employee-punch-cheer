@@ -206,16 +206,20 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       };
     });
 
-    const vacationRows = employeeVacations.map(vacation => ({
-      sortDate: vacation.date,
-      'Dátum': format(new Date(vacation.date), 'd.M.yyyy (EEEE)', { locale: sk }),
-      'Typ': getVacationTypeLabel(vacation.type),
-      'Príchod': '-',
-      'Odchod': '-',
-      'Prestávka': '-',
-      'Hodiny': 0,
-      'Mzda (€)': 0,
-    }));
+    const vacationRows = employeeVacations.map(vacation => {
+      const isVacation = vacation.type === 'vacation';
+      const vacHours = isVacation ? 7.5 : 0;
+      return {
+        sortDate: vacation.date,
+        'Dátum': format(new Date(vacation.date), 'd.M.yyyy (EEEE)', { locale: sk }),
+        'Typ': getVacationTypeLabel(vacation.type),
+        'Príchod': '-',
+        'Odchod': '-',
+        'Prestávka': '-',
+        'Hodiny': vacHours,
+        'Mzda (€)': Math.round(vacHours * hourlyRate * 100) / 100,
+      };
+    });
 
     // Merge and sort by date (ascending - earliest first)
     const allRows = [...workRows, ...vacationRows].sort((a, b) => 
