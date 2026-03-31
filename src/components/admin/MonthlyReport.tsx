@@ -110,7 +110,8 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Odpracované hodiny': report.totalHours,
       'Hodiny cez sviatok': report.holidayHours,
       'Príplatok za sviatky (€)': report.holidayBonus,
-      'Dni voľna': report.vacationDays,
+      'Dni dovolenky': report.vacationDays,
+      'Hodiny dovolenka': report.vacationHours,
       'Hodinová sadzba (€)': report.hourlyRate,
       'Celková mzda (€)': report.calculatedWage,
     }));
@@ -122,7 +123,8 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Odpracované hodiny': totalHours,
       'Hodiny cez sviatok': reports.reduce((sum, r) => sum + r.holidayHours, 0),
       'Príplatok za sviatky (€)': reports.reduce((sum, r) => sum + r.holidayBonus, 0),
-      'Dni voľna': reports.reduce((sum, r) => sum + r.vacationDays, 0),
+      'Dni dovolenky': reports.reduce((sum, r) => sum + r.vacationDays, 0),
+      'Hodiny dovolenka': reports.reduce((sum, r) => sum + r.vacationHours, 0),
       'Hodinová sadzba (€)': 0,
       'Celková mzda (€)': totalWages,
     });
