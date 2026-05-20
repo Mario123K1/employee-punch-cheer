@@ -160,15 +160,11 @@ const Index = () => {
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredEmployees.map((employee, index) => {
+            {filteredEmployees.map((employee) => {
               const todayEntry = getTodayEntry(employee.id);
               const unclosedEntry = getUnclosedPreviousEntry(timeEntries, employee.id, today);
               return (
-                <div
-                  key={employee.id}
-                  className="animate-slide-up"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
+                <div key={employee.id}>
                   <EmployeeCard
                     employee={{
                       id: employee.id,
