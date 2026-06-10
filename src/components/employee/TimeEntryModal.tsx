@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Clock, LogIn, LogOut, AlertTriangle, Coffee } from 'lucide-react';
+import { CalendarPlus } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { calculateWorkedHours } from '@/lib/timeUtils';
 import { format } from 'date-fns';
@@ -33,6 +35,7 @@ interface TimeEntryModalProps {
   onClockOut: (employeeId: string, time: string) => void;
   onCloseUnclosed: (entryId: string, time: string) => void;
   onToggleBreak?: (entryId: string, breakTaken: boolean) => void;
+  onBackdatedEntry?: (employeeId: string, date: string, clockIn: string, clockOut: string, breakTaken: boolean) => void;
 }
 
 export function TimeEntryModal({
@@ -45,10 +48,16 @@ export function TimeEntryModal({
   onClockOut,
   onCloseUnclosed,
   onToggleBreak,
+  onBackdatedEntry,
 }: TimeEntryModalProps) {
   const [clockInTime, setClockInTime] = useState('');
   const [clockOutTime, setClockOutTime] = useState('');
   const [unclosedCloseTime, setUnclosedCloseTime] = useState('');
+  const [showBackdated, setShowBackdated] = useState(false);
+  const [backDate, setBackDate] = useState('');
+  const [backClockIn, setBackClockIn] = useState('');
+  const [backClockOut, setBackClockOut] = useState('');
+  const [backBreak, setBackBreak] = useState(false);
 
   const isClockedIn = todayEntry?.clockIn && !todayEntry?.clockOut;
   const hasCompleted = todayEntry?.clockIn && todayEntry?.clockOut;
@@ -88,6 +97,18 @@ export function TimeEntryModal({
     if (todayEntry && onToggleBreak) {
       onToggleBreak(todayEntry.id, !todayEntry.breakTaken);
     }
+  };
+
+  const handleSaveBackdated = () => {
+    if (!employee || !onBackdatedEntry) return;
+    if (!backDate || !backClockIn) return;
+    onBackdatedEntry(employee.id, backDate, backClockIn, backClockOut, backBreak);
+    setShowBackdated(false);
+    setBackDate('');
+    setBackClockIn('');
+    setBackClockOut('');
+    setBackBreak(false);
+    onOpenChange(false);
   };
 
   const formatUnclosedDate = (dateStr: string) => {
@@ -281,6 +302,78 @@ export function TimeEntryModal({
               <p className="text-xs text-muted-foreground text-center">
                 Prestávka 30 minút sa automaticky odpočíta z odpracovaných hodín
               </p>
+            </div>
+          )}
+
+          {/* Backdated entry section */}
+          {onBackdatedEntry && (
+            <div className="border-t pt-4">
+              {!showBackdated ? (
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => setShowBackdated(true)}
+                >
+                  <CalendarPlus className="w-4 h-4" />
+                  Spätne doplniť dochádzku (zabudnutý príchod/odchod)
+                </Button>
+              ) : (
+                <div className="space-y-3 p-3 rounded-lg border bg-muted/30">
+                  <p className="text-sm font-medium">Spätne doplniť dochádzku</p>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Dátum</Label>
+                    <Input
+                      type="date"
+                      value={backDate}
+                      max={new Date().toISOString().split('T')[0]}
+                      onChange={(e) => setBackDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Príchod</Label>
+                      <Input
+                        type="time"
+                        value={backClockIn}
+                        onChange={(e) => setBackClockIn(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Odchod</Label>
+                      <Input
+                        type="time"
+                        value={backClockOut}
+                        onChange={(e) => setBackClockOut(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={backBreak}
+                      onCheckedChange={(v) => setBackBreak(!!v)}
+                    />
+                    <span>Prestávka (−30 min)</span>
+                  </label>
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1"
+                      onClick={handleSaveBackdated}
+                      disabled={!backDate || !backClockIn}
+                    >
+                      Uložiť záznam
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setShowBackdated(false)}
+                    >
+                      Zrušiť
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Ak už pre tento deň existuje záznam, bude aktualizovaný.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
