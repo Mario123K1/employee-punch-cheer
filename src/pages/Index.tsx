@@ -10,10 +10,13 @@ import { Clock, Search, WifiOff, CloudOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Index = () => {
   useRealtimeSubscription();
   const { isOnline, pendingCount, addOfflineClockIn, addOfflineClockOut } = useOfflineSync();
+  const queryClient = useQueryClient();
   
   const { data: employees = [], isLoading: loadingEmployees } = useEmployees();
   const { data: timeEntries = [], isLoading: loadingEntries } = useTimeEntries();
@@ -82,6 +85,45 @@ const Index = () => {
       toast.success(breakTaken ? 'Prestávka označená' : 'Prestávka zrušená');
     } catch (error) {
       toast.error('Chyba pri označovaní prestávky');
+    }
+  };
+
+  const handleBackdatedEntry = async (
+    employeeId: string,
+    date: string,
+    clockInTime: string,
+    clockOutTime: string,
+    breakTaken: boolean
+  ) => {
+    try {
+      const existing = timeEntries.find(
+        (e) => e.employee_id === employeeId && e.date === date
+      );
+      if (existing) {
+        const { error } = await supabase
+          .from('time_entries')
+          .update({
+            clock_in: clockInTime || null,
+            clock_out: clockOutTime || null,
+            break_taken: breakTaken,
+          })
+          .eq('id', existing.id);
+        if (error) throw error;
+        toast.success('Záznam aktualizovaný');
+      } else {
+        const { error } = await supabase.from('time_entries').insert({
+          employee_id: employeeId,
+          date,
+          clock_in: clockInTime || null,
+          clock_out: clockOutTime || null,
+          break_taken: breakTaken,
+        });
+        if (error) throw error;
+        toast.success('Záznam doplnený');
+      }
+      queryClient.invalidateQueries({ queryKey: ['time_entries'] });
+    } catch (error: any) {
+      toast.error('Chyba pri ukladaní: ' + (error?.message || 'neznáma chyba'));
     }
   };
 
@@ -227,6 +269,7 @@ const Index = () => {
           onClockOut={handleClockOut}
           onCloseUnclosed={handleCloseUnclosed}
           onToggleBreak={handleToggleBreak}
+          onBackdatedEntry={handleBackdatedEntry}
         />
       )}
     </AppLayout>
