@@ -34,7 +34,7 @@ export function EmployeeCard({
       }}
       className={cn(
         "w-full p-4 rounded-xl border transition-all duration-200 text-left",
-        "hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+        "hover:shadow-lg active:opacity-90",
         "bg-card border-border",
         isClockedIn && "ring-2 ring-clockIn border-clockIn/30",
         hasCompleted && "border-muted",
