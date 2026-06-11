@@ -101,15 +101,37 @@
     @apply border-border;
   }
 
+  html,
+  body,
+  #root {
+    min-height: 100%;
+    background: hsl(var(--background));
+  }
+
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 1024px), (hover: none), (pointer: coarse) {
+    :root {
+      --background: 0 0% 100%;
+      --card: 0 0% 100%;
+      --muted: 210 20% 96%;
+    }
+
+    html,
+    body,
+    #root {
+      background: hsl(var(--background)) !important;
+      -webkit-font-smoothing: auto !important;
+      text-rendering: auto !important;
+    }
+
     *, *::before, *::after {
       animation: none !important;
       transform: none !important;
@@ -118,6 +140,10 @@
       text-shadow: none !important;
       filter: none !important;
       backdrop-filter: none !important;
+      perspective: none !important;
+      will-change: auto !important;
+      contain: none !important;
+      isolation: auto !important;
     }
   }
 }
