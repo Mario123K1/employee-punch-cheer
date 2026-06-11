@@ -33,12 +33,12 @@ export function EmployeeCard({
         }
       }}
       className={cn(
-        "w-full p-4 rounded-xl border text-left",
+        "w-full p-4 rounded-xl border-2 text-left",
         "active:opacity-90",
         "bg-card border-border",
-        isClockedIn && "ring-2 ring-clockIn border-clockIn/30",
+        isClockedIn && "border-clockIn",
         hasCompleted && "border-muted",
-        hasUnclosedEntry && !isClockedIn && "ring-2 ring-orange-500 border-orange-500/30"
+        hasUnclosedEntry && !isClockedIn && "border-orange-500"
       )}
     >
       <div className="flex items-center gap-4">
