@@ -33,8 +33,8 @@ export function EmployeeCard({
         }
       }}
       className={cn(
-        "w-full p-4 rounded-xl border transition-all duration-200 text-left",
-        "hover:shadow-lg active:opacity-90",
+        "w-full p-4 rounded-xl border text-left",
+        "active:opacity-90",
         "bg-card border-border",
         isClockedIn && "ring-2 ring-clockIn border-clockIn/30",
         hasCompleted && "border-muted",
@@ -80,7 +80,7 @@ export function EmployeeCard({
           ) : isClockedIn ? (
             <>
               <span className="status-badge bg-clockIn/20 text-clockIn">
-                <span className="w-1.5 h-1.5 rounded-full bg-clockIn animate-pulse-soft" />
+                <span className="w-1.5 h-1.5 rounded-full bg-clockIn" />
                 Pracuje
               </span>
               <span className="text-xs text-muted-foreground">Od {todayEntry?.clockIn}</span>
