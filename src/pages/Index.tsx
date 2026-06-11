@@ -186,7 +186,7 @@ const Index = () => {
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Search className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
           <Input
             placeholder="Hľadať zamestnancov..."
             value={searchQuery}

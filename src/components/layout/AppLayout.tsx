@@ -42,7 +42,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     key={item.path}
                     to={item.path}
                     className={cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200",
+                      "flex items-center gap-2 px-4 py-2 rounded-lg",
                       isActive
                         ? "bg-accent text-accent-foreground"
                         : "text-primary-foreground/80 hover:bg-primary-foreground/10"
@@ -74,7 +74,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all duration-200",
+                  "flex flex-col items-center gap-1 px-4 py-2 rounded-lg",
                   isActive
                     ? "text-accent"
                     : "text-muted-foreground hover:text-foreground"
