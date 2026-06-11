@@ -33,8 +33,7 @@ export function EmployeeCard({
         }
       }}
       className={cn(
-        "w-full p-4 rounded-xl border-2 text-left",
-        "active:opacity-90",
+        "w-full p-4 border-2 text-left",
         "bg-card border-border",
         isClockedIn && "border-clockIn",
         hasCompleted && "border-muted",
@@ -45,7 +44,7 @@ export function EmployeeCard({
         {/* Avatar */}
         <div
           className={cn(
-            "w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold relative",
+            "w-12 h-12 flex items-center justify-center text-lg font-semibold relative",
             isClockedIn
               ? "bg-clockIn/20 text-clockIn"
               : hasUnclosedEntry
@@ -58,7 +57,7 @@ export function EmployeeCard({
             .map((n) => n[0])
             .join("")}
           {hasUnclosedEntry && !isClockedIn && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+            <div className="absolute top-0 right-0 w-5 h-5 bg-orange-500 flex items-center justify-center">
               <AlertTriangle className="w-3 h-3 text-white" />
             </div>
           )}
