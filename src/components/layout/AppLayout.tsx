@@ -17,13 +17,13 @@ export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background tablet-safe-root">
       {/* Header */}
       <header className="bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4">
+        <div className="mx-auto w-full max-w-7xl px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
+              <div className="w-10 h-10 bg-accent flex items-center justify-center">
                 <Clock className="w-5 h-5 text-accent-foreground" />
               </div>
               <div>
@@ -42,7 +42,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     key={item.path}
                     to={item.path}
                     className={cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-lg",
+                      "flex items-center gap-2 px-4 py-2",
                       isActive
                         ? "bg-accent text-accent-foreground"
                         : "text-primary-foreground/80 hover:bg-primary-foreground/10"
@@ -59,7 +59,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="mx-auto w-full max-w-7xl px-4 py-6">
         {children}
       </main>
 
@@ -74,7 +74,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-4 py-2 rounded-lg",
+                  "flex flex-col items-center gap-1 px-4 py-2",
                   isActive
                     ? "text-accent"
                     : "text-muted-foreground hover:text-foreground"
