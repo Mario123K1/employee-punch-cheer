@@ -64,7 +64,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden sticky bottom-0 bg-card border-t border-border">
+      <nav className="md:hidden bg-card border-t border-border">
         <div className="flex items-center justify-around h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
