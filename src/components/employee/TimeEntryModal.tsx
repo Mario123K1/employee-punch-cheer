@@ -129,7 +129,7 @@ export function TimeEntryModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-md max-h-[90dvh] overflow-y-auto overflow-x-hidden p-5 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className={cn(
@@ -164,19 +164,19 @@ export function TimeEntryModal({
                 <p>
                   Zamestnanec má neuzavretý záznam z <strong>{formatUnclosedDate(unclosedEntry.date)}</strong> (príchod: {unclosedEntry.clockIn})
                 </p>
-                <div className="flex gap-2 items-center">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                   <Input
                     type="time"
                     value={unclosedCloseTime}
                     onChange={(e) => setUnclosedCloseTime(e.target.value)}
                     placeholder="HH:MM"
-                    className="flex-1 bg-background"
+                    className="min-w-0 bg-background"
                   />
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleCloseUnclosed}
-                    className="gap-1 border-orange-500 text-orange-700 hover:bg-orange-500/20"
+                    className="h-auto min-h-9 whitespace-normal break-words gap-1 border-orange-500 text-orange-700 hover:bg-orange-500/20"
                   >
                     <LogOut className="w-3 h-3" />
                     Uzavrieť (23:59)
@@ -192,20 +192,20 @@ export function TimeEntryModal({
               <Label htmlFor="clockIn" className="text-sm font-medium">
                 Čas príchodu
               </Label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                 <Input
                   id="clockIn"
                   type="time"
                   value={clockInTime}
                   onChange={(e) => setClockInTime(e.target.value)}
                   placeholder="HH:MM"
-                  className="flex-1"
+                  className="min-w-0"
                 />
                 <Button
                   variant="clockIn"
                   size="lg"
                   onClick={handleClockIn}
-                  className="gap-2"
+                  className="w-full gap-2 sm:w-auto"
                 >
                   <LogIn className="w-4 h-4" />
                   Príchod
@@ -244,20 +244,20 @@ export function TimeEntryModal({
               <Label htmlFor="clockOut" className="text-sm font-medium">
                 Čas odchodu
               </Label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                 <Input
                   id="clockOut"
                   type="time"
                   value={clockOutTime}
                   onChange={(e) => setClockOutTime(e.target.value)}
                   placeholder="HH:MM"
-                  className="flex-1"
+                  className="min-w-0"
                 />
                 <Button
                   variant="clockOut"
                   size="lg"
                   onClick={handleClockOut}
-                  className="gap-2"
+                  className="w-full gap-2 sm:w-auto"
                 >
                   <LogOut className="w-4 h-4" />
                   Odchod
@@ -311,7 +311,7 @@ export function TimeEntryModal({
               {!showBackdated ? (
                 <Button
                   variant="outline"
-                  className="w-full gap-2"
+                  className="w-full h-auto min-h-10 whitespace-normal break-words gap-2"
                   onClick={() => setShowBackdated(true)}
                 >
                   <CalendarPlus className="w-4 h-4" />
