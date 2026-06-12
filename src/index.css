@@ -145,6 +145,19 @@
       contain: none !important;
       isolation: auto !important;
     }
+
+    [role="dialog"] {
+      left: 0 !important;
+      top: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100dvh !important;
+      max-width: none !important;
+      max-height: none !important;
+      overflow-y: auto !important;
+      background: hsl(var(--background)) !important;
+    }
   }
 }
 
