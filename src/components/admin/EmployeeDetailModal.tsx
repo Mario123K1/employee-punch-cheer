@@ -46,6 +46,19 @@ export const EmployeeDetailModal = ({
   const [newEntry, setNewEntry] = useState({ date: '', clockIn: '', clockOut: '', breakTaken: false });
   const [saving, setSaving] = useState(false);
 
+  // When opened via "Pridať spätne" button, show the add form right away
+  useEffect(() => {
+    if (isOpen && startWithAdd) {
+      setAddingNew(true);
+      setEditingId(null);
+      setNewEntry(p => ({ ...p, date: p.date || format(new Date(), 'yyyy-MM-dd') }));
+    }
+    if (!isOpen) {
+      setAddingNew(false);
+      setEditingId(null);
+    }
+  }, [isOpen, startWithAdd]);
+
   const calculateHours = calculateWorkedHours;
 
   const sortedEntries = [...timeEntries].sort((a, b) => 
