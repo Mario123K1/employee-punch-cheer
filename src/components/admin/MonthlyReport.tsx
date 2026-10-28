@@ -473,6 +473,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
           employeeName={selectedEmployee.name}
           employeeId={selectedEmployee.id}
           timeEntries={timeEntries.filter(e => e.employeeId === selectedEmployee.id)}
+          startWithAdd={selectedEmployee.startWithAdd}
         />
       )}
     </div>
