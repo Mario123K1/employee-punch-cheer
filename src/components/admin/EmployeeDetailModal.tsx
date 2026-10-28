@@ -27,6 +27,7 @@ interface EmployeeDetailModalProps {
   employeeName: string;
   employeeId: string;
   timeEntries: TimeEntry[];
+  startWithAdd?: boolean;
 }
 
 export const EmployeeDetailModal = ({
@@ -35,6 +36,7 @@ export const EmployeeDetailModal = ({
   employeeName,
   employeeId,
   timeEntries,
+  startWithAdd = false,
 }: EmployeeDetailModalProps) => {
   const { data: holidays = [] } = useHolidays();
   const queryClient = useQueryClient();
