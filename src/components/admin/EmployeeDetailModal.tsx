@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ interface EmployeeDetailModalProps {
   employeeName: string;
   employeeId: string;
   timeEntries: TimeEntry[];
+  startWithAdd?: boolean;
 }
 
 export const EmployeeDetailModal = ({
@@ -35,6 +36,7 @@ export const EmployeeDetailModal = ({
   employeeName,
   employeeId,
   timeEntries,
+  startWithAdd = false,
 }: EmployeeDetailModalProps) => {
   const { data: holidays = [] } = useHolidays();
   const queryClient = useQueryClient();
@@ -43,6 +45,19 @@ export const EmployeeDetailModal = ({
   const [addingNew, setAddingNew] = useState(false);
   const [newEntry, setNewEntry] = useState({ date: '', clockIn: '', clockOut: '', breakTaken: false });
   const [saving, setSaving] = useState(false);
+
+  // When opened via "Pridať spätne" button, show the add form right away
+  useEffect(() => {
+    if (isOpen && startWithAdd) {
+      setAddingNew(true);
+      setEditingId(null);
+      setNewEntry(p => ({ ...p, date: p.date || format(new Date(), 'yyyy-MM-dd') }));
+    }
+    if (!isOpen) {
+      setAddingNew(false);
+      setEditingId(null);
+    }
+  }, [isOpen, startWithAdd]);
 
   const calculateHours = calculateWorkedHours;
 
@@ -113,21 +128,32 @@ export const EmployeeDetailModal = ({
       return;
     }
     setSaving(true);
-    const { error } = await supabase
-      .from('time_entries')
-      .insert({
-        employee_id: employeeId,
-        date: newEntry.date,
-        clock_in: newEntry.clockIn || null,
-        clock_out: newEntry.clockOut || null,
-        break_taken: newEntry.breakTaken,
-      });
+    // If an entry already exists for this employee and date, update it instead of failing on the unique constraint
+    const existing = timeEntries.find(e => e.date === newEntry.date);
+    const { error } = existing
+      ? await supabase
+          .from('time_entries')
+          .update({
+            clock_in: newEntry.clockIn || null,
+            clock_out: newEntry.clockOut || null,
+            break_taken: newEntry.breakTaken,
+          })
+          .eq('id', existing.id)
+      : await supabase
+          .from('time_entries')
+          .insert({
+            employee_id: employeeId,
+            date: newEntry.date,
+            clock_in: newEntry.clockIn || null,
+            clock_out: newEntry.clockOut || null,
+            break_taken: newEntry.breakTaken,
+          });
 
     setSaving(false);
     if (error) {
       toast.error('Chyba pri pridávaní: ' + error.message);
     } else {
-      toast.success('Záznam pridaný');
+      toast.success(existing ? 'Záznam aktualizovaný' : 'Záznam pridaný');
       setAddingNew(false);
       setNewEntry({ date: '', clockIn: '', clockOut: '', breakTaken: false });
       queryClient.invalidateQueries({ queryKey: ['time_entries'] });

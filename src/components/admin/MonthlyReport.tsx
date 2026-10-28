@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BarChart3, Clock, Calendar, DollarSign, Download, FileSpreadsheet, Star } from 'lucide-react';
+import { BarChart3, Clock, Calendar, DollarSign, Download, FileSpreadsheet, Star, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { sk } from 'date-fns/locale';
@@ -35,7 +35,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth().toString());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
-  const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; name: string } | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; name: string; startWithAdd?: boolean } | null>(null);
   const { data: holidays = [] } = useHolidays();
   const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -387,6 +387,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Voľno</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Sadzba/hod</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Celková mzda</th>
+                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Dochádzka</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Export</th>
                 </tr>
               </thead>
@@ -438,6 +439,18 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                       <Button
                         size="sm"
                         variant="outline"
+                        className="gap-1"
+                        onClick={() => setSelectedEmployee({ id: report.employeeId, name: report.employeeName, startWithAdd: true })}
+                        title="Spätne doplniť príchod/odchod"
+                      >
+                        <PlusCircle className="w-4 h-4" />
+                        <span className="hidden lg:inline">Pridať</span>
+                      </Button>
+                    </td>
+                    <td className="text-right py-3 px-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => handleEmployeeExport(report.employeeId, report.employeeName)}
                         title="Exportovať detailný výkaz"
                       >
@@ -460,6 +473,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
           employeeName={selectedEmployee.name}
           employeeId={selectedEmployee.id}
           timeEntries={timeEntries.filter(e => e.employeeId === selectedEmployee.id)}
+          startWithAdd={selectedEmployee.startWithAdd}
         />
       )}
     </div>
