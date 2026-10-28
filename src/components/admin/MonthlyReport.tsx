@@ -387,6 +387,7 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Voľno</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Sadzba/hod</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Celková mzda</th>
+                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Dochádzka</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Export</th>
                 </tr>
               </thead>
@@ -434,6 +435,18 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
                     </td>
                     <td className="text-right py-3 px-4 text-muted-foreground">{report.hourlyRate} €</td>
                     <td className="text-right py-3 px-4 font-bold text-clockIn">{report.calculatedWage.toFixed(2)} €</td>
+                    <td className="text-right py-3 px-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1"
+                        onClick={() => setSelectedEmployee({ id: report.employeeId, name: report.employeeName, startWithAdd: true })}
+                        title="Spätne doplniť príchod/odchod"
+                      >
+                        <PlusCircle className="w-4 h-4" />
+                        <span className="hidden lg:inline">Pridať</span>
+                      </Button>
+                    </td>
                     <td className="text-right py-3 px-4">
                       <Button
                         size="sm"
