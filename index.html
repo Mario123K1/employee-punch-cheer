@@ -27,7 +27,42 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="boot-fallback" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;background:#ffffff;color:#1a1a2e;padding:24px;text-align:center;">
+        <p style="font-size:20px;margin:0 0 16px;">Načítavam aplikáciu…</p>
+        <button id="boot-reset" type="button" style="display:none;font-size:18px;padding:14px 24px;border:0;background:#1a1a2e;color:#ffffff;">Obnoviť aplikáciu</button>
+      </div>
+    </div>
+    <script>
+      (function () {
+        function resetApp() {
+          var jobs = [];
+          try {
+            if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+              jobs.push(navigator.serviceWorker.getRegistrations().then(function (regs) {
+                return Promise.all(regs.map(function (r) { return r.unregister(); }));
+              }));
+            }
+            if (window.caches && caches.keys) {
+              jobs.push(caches.keys().then(function (keys) {
+                return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+              }));
+            }
+          } catch (e) {}
+          Promise.all(jobs).then(done, done);
+          function done() { window.location.replace(window.location.pathname + '?r=' + Date.now()); }
+        }
+        var btn = document.getElementById('boot-reset');
+        if (btn) btn.onclick = resetApp;
+        setTimeout(function () {
+          if (!document.getElementById('boot-fallback')) return; // app started fine
+          if (btn) btn.style.display = 'inline-block';
+          var tried = false;
+          try { tried = sessionStorage.getItem('boot-reset-tried') === '1'; sessionStorage.setItem('boot-reset-tried', '1'); } catch (e) {}
+          if (!tried) resetApp();
+        }, 8000);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
