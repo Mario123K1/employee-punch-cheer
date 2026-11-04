@@ -260,10 +260,17 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
     const worksheet = XLSX.utils.aoa_to_sheet([
       ['Zamestnanec:', employeeName],
       ['Obdobie:', `${monthName} ${selectedYear}`],
-      ['Hodinová sadzba (€):', hourlyRate],
       [],
     ]);
-    XLSX.utils.sheet_add_json(worksheet, exportRows, { origin: 'A5' });
+    XLSX.utils.sheet_add_json(worksheet, exportRows, { origin: 'A4' });
+
+    // CELKOM row: always sum hours & wage via Excel formulas
+    const totalRowNum = 4 + exportRows.length; // header at row 4
+    const lastDataRow = totalRowNum - 1;
+    if (lastDataRow >= 5) {
+      worksheet[`F${totalRowNum}`] = { t: 'n', v: Math.round(totalHrs * 100) / 100, f: `SUM(F5:F${lastDataRow})` };
+      worksheet[`G${totalRowNum}`] = { t: 'n', v: Math.round(totalWage * 100) / 100, f: `SUM(G5:G${lastDataRow})` };
+    }
     const workbook = XLSX.utils.book_new();
     
     worksheet['!cols'] = [
