@@ -268,6 +268,9 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
     const totalRowNum = 4 + exportRows.length; // header at row 4
     const lastDataRow = totalRowNum - 1;
     if (lastDataRow >= 5) {
+      // blank out the 0s in the empty spacer row
+      delete worksheet[`F${lastDataRow}`];
+      delete worksheet[`G${lastDataRow}`];
       worksheet[`F${totalRowNum}`] = { t: 'n', v: Math.round(totalHrs * 100) / 100, f: `SUM(F5:F${lastDataRow})` };
       worksheet[`G${totalRowNum}`] = { t: 'n', v: Math.round(totalWage * 100) / 100, f: `SUM(G5:G${lastDataRow})` };
     }
