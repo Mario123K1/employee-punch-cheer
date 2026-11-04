@@ -254,12 +254,21 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       'Mzda (€)': Math.round(totalWage * 100) / 100,
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(exportRows);
+    const monthName = months[parseInt(selectedMonth)];
+
+    // Header with employee name so it is visible when printed
+    const worksheet = XLSX.utils.aoa_to_sheet([
+      ['Zamestnanec:', employeeName],
+      ['Obdobie:', `${monthName} ${selectedYear}`],
+      ['Hodinová sadzba (€):', hourlyRate],
+      [],
+    ]);
+    XLSX.utils.sheet_add_json(worksheet, exportRows, { origin: 'A5' });
     const workbook = XLSX.utils.book_new();
     
     worksheet['!cols'] = [
       { wch: 22 },
-      { wch: 20 },
+      { wch: 24 },
       { wch: 10 },
       { wch: 10 },
       { wch: 15 },
@@ -267,7 +276,6 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
       { wch: 12 },
     ];
 
-    const monthName = months[parseInt(selectedMonth)];
     const sheetName = employeeName.substring(0, 31);
     XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
 
