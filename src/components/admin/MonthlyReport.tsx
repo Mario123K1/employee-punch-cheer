@@ -273,15 +273,17 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
     }
     const workbook = XLSX.utils.book_new();
     
+    // Narrow columns + small margins so all columns (incl. Hodiny & Mzda) fit on one printed page width
     worksheet['!cols'] = [
-      { wch: 22 },
-      { wch: 24 },
-      { wch: 10 },
-      { wch: 10 },
-      { wch: 15 },
-      { wch: 10 },
+      { wch: 19 },
       { wch: 12 },
+      { wch: 8 },
+      { wch: 8 },
+      { wch: 11 },
+      { wch: 7 },
+      { wch: 9 },
     ];
+    worksheet['!margins'] = { left: 0.3, right: 0.3, top: 0.4, bottom: 0.4, header: 0.2, footer: 0.2 };
 
     const sheetName = employeeName.substring(0, 31);
     XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
