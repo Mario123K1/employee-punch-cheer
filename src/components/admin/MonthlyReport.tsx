@@ -268,20 +268,25 @@ export function MonthlyReport({ employees, timeEntries, vacationDays }: MonthlyR
     const totalRowNum = 4 + exportRows.length; // header at row 4
     const lastDataRow = totalRowNum - 1;
     if (lastDataRow >= 5) {
+      // blank out the 0s in the empty spacer row
+      delete worksheet[`F${lastDataRow}`];
+      delete worksheet[`G${lastDataRow}`];
       worksheet[`F${totalRowNum}`] = { t: 'n', v: Math.round(totalHrs * 100) / 100, f: `SUM(F5:F${lastDataRow})` };
       worksheet[`G${totalRowNum}`] = { t: 'n', v: Math.round(totalWage * 100) / 100, f: `SUM(G5:G${lastDataRow})` };
     }
     const workbook = XLSX.utils.book_new();
     
+    // Narrow columns + small margins so all columns (incl. Hodiny & Mzda) fit on one printed page width
     worksheet['!cols'] = [
-      { wch: 22 },
-      { wch: 24 },
-      { wch: 10 },
-      { wch: 10 },
-      { wch: 15 },
-      { wch: 10 },
+      { wch: 19 },
       { wch: 12 },
+      { wch: 8 },
+      { wch: 8 },
+      { wch: 11 },
+      { wch: 7 },
+      { wch: 9 },
     ];
+    worksheet['!margins'] = { left: 0.3, right: 0.3, top: 0.4, bottom: 0.4, header: 0.2, footer: 0.2 };
 
     const sheetName = employeeName.substring(0, 31);
     XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
